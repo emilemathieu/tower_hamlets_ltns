@@ -4,6 +4,8 @@
 Interactive installation from setup.py
 
 ```bash
+git clone git@github.com:emilemathieu/tower_hamlets_ltns.git
+cd tower_hamlets_ltns
 conda create --name geopandas python=3.9
 conda activate geopandas
 conda install -c conda-forge geopandas pygeos
