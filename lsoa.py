@@ -79,7 +79,7 @@ bounds = gpd.GeoDataFrame(
     geometry=[Point([min_lon, min_lat]), Point([max_lon, max_lat])], crs=crs
 )
 minx, miny, maxx, maxy = bounds.to_crs(epsg=3857).total_bounds
-minx, miny, maxx, maxy = df.total_bounds
+# minx, miny, maxx, maxy = df.total_bounds
 
 #%%
 # Define plotting function
@@ -164,4 +164,55 @@ df.loc[idx_weavers, "avg_car_density"] = avg_weavers
 
 plot(["avg_IMD_Decile", "avg_car_density"], cmaps)
 
+#%%
+cmap = cmaps[0]
+metric = metrics[0]
+sm = plt.cm.ScalarMappable(
+    cmap=cmap, norm=plt.Normalize(vmin=df[metric].min(), vmax=df[metric].max())
+)
+df.explore(
+    column=metric,  # make choropleth based on "BoroName" column
+    tooltip="lsoa11cd",  # show "BoroName" value in tooltip (on hover)
+    popup=False,  # show all values in popup (on click)
+    tiles="CartoDB positron",  # use "CartoDB positron" tiles
+    cmap=sm,  # use "Set1" matplotlib colormap
+    style_kwds=dict(color="black"),  # use black outline
+    vmin=df[metrics[0]].astype(int).min(),
+    vmax=df[metrics[0]].astype(int).max(),
+)
+
 # %%
+from scipy import stats
+
+ci = 0.95
+alpha = (1 - ci) / 2
+
+
+def half_ci(group):
+    data = group.dropna().to_numpy()
+    sem = stats.sem(data)
+    t2 = stats.t.ppf(1 - alpha, len(data) - 1) - stats.t.ppf(alpha, len(data) - 1)
+    return sem * (t2 / 2)
+
+
+def lower_ci(group):
+    data = group.dropna().to_numpy()
+    sem = stats.sem(data)
+    mean = data.mean()
+    t = stats.t.ppf(alpha, len(data) - 1)
+    return mean + sem * t
+
+
+def upper_ci(group):
+    data = group.dropna().to_numpy()
+    sem = stats.sem(data)
+    mean = data.mean()
+    t = stats.t.ppf(1 - alpha, len(data) - 1)
+    return mean + sem * t
+
+
+reducers = ["mean", "std", "sem", lower_ci, upper_ci, half_ci, "count"]
+group_by
+metric = metric if isinstance(metric, list) else [metric]
+metrics_to_agg = {key: reducers for key in metric}
+results = results.groupby(by=["group"] + group_by).agg(metrics_to_agg)
