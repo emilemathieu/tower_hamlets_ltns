@@ -1,0 +1,91 @@
+Site no,Location,Grid squaresX,Grid squaresY,Site Type,Jan-20,Feb-20,Mar-20,Apr-20,May-20,Jun-20,Jul-20,Aug-20,Sep-20,Oct-20,Nov-20,Dec-20
+1,Colombia Rd/Gossett Street,533883,182815,Kerbside,46.2,41.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,26.3,30.6,35.9,41.8,38.3
+2,Calvert Ave/Boundary Street,533507,182569,Kerbside,50.3,44.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,29.2,31.8,missing,38.7,38.3
+3,Bethnal Green Rd/ Brick Lane,533860,182442,Kerbside,48,47.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,31.8,33.3,38.8,41.6,39
+4,Commercial St/Calvin St,533611,182037,Kerbside,57.8,47.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,45.2,47.1,45.5,50.5,54.9
+5,Whitechapel High St (KFC),533985,181426,Kerbside,63.3,56.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing ,49,50.6,48.5,39.3
+6,Mansell St,533800,181021,Kerbside,66.5,61.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,47.5,46.1,44.8,45.9,46.4
+7,St Katherine's Way,533992,180376,Roadside,37.8,31.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,20.2,23.2,29.6,35.2,25.6
+8,Wapping High St/Sampson St,534444,180122,Kerbside,34.2,31.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,22.5,25.6,30.6,37.2,38.1
+9,Cartwright Street,533955,180805,Kerbside,44.3,40.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,25.8,27.9,33.5,42.6,37.7
+10,Whitechapel Rd/Adler St,534133,181509,Kerbside,48,42.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,36.9,38.9,41.8,44,41.9
+11,Brick Lane/Princelet St,533866,181860,Kerbside,41.9,37.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30,missing,31.3,38.1,37.2
+12,Buckfast St/Bethnal Green Rd,534259,182580,Kerbside,44.2,40.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,28.7,31.1,28.3,36.8,37.5
+13,Squirries St/Gosset St,534313,182810,Kerbside,45.5,38.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,33.8,38.1,35.2,41.9,43.7
+14,Warner Place/Hackney Rd,534255,183130,Kerbside,55,44,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,27.1,29.9,32.8,37.3,34
+15,Parmiter St/ Cambridge Heath Road,534881,183240,Kerbside,55.9,45.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,36.1,39.6,41.3,44.8,45.5
+16,Paradise Row/Bethnal Green Rd,534959,182757,Kerbside,52.7,48.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,33.3,32.6,38.4,37.7,43.4
+17,Finnis St/Three Colts Lane,534783,182385,Kerbside,34,30,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,24.1,28.2,31.4,31.5,37.3
+18,Sidney St/Mile End Rd,534968,181878,Roadside,47.3,46.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,37.4,38.2,40,42.4,46.9
+19,Philpot St/Commercial Road,534816,181321,Kerbside,54.6,54,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,39.4,35.5,38.9,43.6,50.2
+20,Dellow St/The Highway,534951,180779,Roadside,47.8,47.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,46.5,47.5,53.9,55,51.1
+21,Queensbridge Rd/Hackney Rd,533985,183122,Kerbside,46.1,43.9,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,28.4,32.4,36.3,40.6,39.3
+22,Wapping Wall/Garnet St,535133,180376,Kerbside,42.1,32.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,25.6,30,33,36,38.5
+23,Brodlove Lane,535598,180816,Kerbside,49.3,46.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,37,missing,43.7,43.5,43.3
+24,Jubilee Street/Commercial Rd,535174,181290,Kerbside,47.2,36.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,51.2,55.3,45.3,51.7,51
+25,Cavell St/Stepney Way,534884,181667,Kerbside,60,47,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.7,33.8,41.3,47.5,44.8
+26,Hannibal Rd/Mile End Rd,535386,182021,Kerbside,53.9,49,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,missing,missing,43.2,42.5
+27,Roman Rd/Globe Road,535296,182793,Kerbside,42.6,35.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,33.5,30,34.8,44.3,43.1
+28,Bonner Road,535356,183223,Kerbside,36.8,35.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,32,38,34.6,40.7,44
+29,Grove Rd/Old Ford Rd,535930,183385,Kerbside,51.8,44.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,32.3,38.7,28.9,41.9,missing
+30,Fieldgate Street,534239,181565,Kerbside,41.4,41.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,35.6,36.4,39.3,43.1,44.3
+31,Whitechapel Market,534516,181744,Roadside,65.7,58.5,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,57.5,59.4,59.1,55.6,56.1
+32,Globe Rd/Mile End Rd,535634,182148,Kerbside,47.6,40.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,42.6,43,40.8,42.9,45.1
+33,Stepney Green,535545,181604,Urban background,40.3,34.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,24.9,30.1,32.7,38.5,38
+34,Pitsea St/Commercial Rd,535797,181164,Kerbside,46,37.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,31.5,34.8,32.9,41,44
+35,Narrow St/Limehouse Link,535977,180879,Roadside,87.1,75.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,86.3,86.6,70.2,79.8,68.8
+36,Locksley St/St Paul's Way,536704,181647,Kerbside,44.7,missing,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,32.1,33.5,35.6,42,39.2
+37,Rhodeswell Rd,536577,181379,Kerbside,42,29.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,32,30.1,31.6,36.6,37.5
+38,Ben Johnson Road,536080,181721,Kerbside,43.5,37.9,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,37.3,41.7,41.8,45.6,45
+39,Harford St/Mile End Rd,536089,182258,Roadside,44.2,31.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,34.5,40.5,38.2,40.4,39.3
+40,Thoydon Rd,536105,183049,Kerbside,missing,1.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.8,29.4,30.1,41.8,36.8
+41,Ford Close/Roman Rd,536457,183301,Roadside,44.4,35.1,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,39.3,36.7,39,40
+42,Victoria Park (Co-location site),536494,184170,Urban background,32.4,23.1,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,18.7,19.5,24,28.5,26.6
+43,Victoria Park (Co-location site),536494,184170,Urban background,30.6,22.9,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,17.5,18.4,21.6,27.3,28.6
+44,Parnell Rd/Old Ford Rd,536875,183740,Kerbside,51.3,39.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.2,36.9,38.6,44.9,41.9
+45,St Stephen's Rd/Tredegar Rd,536713,183070,Kerbside,54.8,40,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,41.2,45,41,48.5,45.2
+46,Rhondda Grove/Mile End Rd,536542,182589,Kerbside,47.7,37.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30,missing,39.6,38,missing
+47,Wentworth Mews,536452,182454,Kerbside,57.3,43.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,47.9,40.8,40,49.2,49.2
+48,Ackroyd Drive,536768,181772,Kerbside,55.5,46.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,41.4,42.7,46.9,48.2,48.1
+49,Dod St/Burdett Rd,537049,181292,Kerbside,48.3,34.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,26.7,30.5,34.6,38.6,40
+50,Rich Street,536937,180987,Roadside,51.5,43,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,37,39.5,36.9,39.6,43.5
+51,Watney Market,534938,181257,Roadside,43.8,29.5,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,missing,32.6,38.6,missing
+52,Wick Lane/Autumn St,537304,183619,Kerbside,51.9,40.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,42.6,37,missing,46.4,48.3
+53,Fairfield Road/Tredegar Road ,537159,183415,Kerbside,1.4,47.5,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,44.8,50.3,48.7,49.6,50
+54,Bow Rd /Glebe Terrace,537525,182887,Kerbside,65.8,53.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,missing ,54.2,57.6,54.5
+55,TH Cemetery Park,536732,182361,Roadside,31.8,22.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,18.7,22.8,20.9,25.5,27.7
+56,Bow Common Lane/St Paul's Way,537248,181820,Kerbside,44.8,34.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,29.6,31.2,38.4,43.1,42.6
+57,Augusta St/Giraud St,537516,181392,Kerbside,41.5,30.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,23.8,28.6,31.8,36.9,38.3
+58,Dolphin Lane,537539,180688,Kerbside,45.7,34,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,27.3,26.5,30.8,37,34.4
+59,Westferry Road/Limehouse Link jnct,537100,180791,Kerbside,51,missing,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,36,35.5,40.4,42.3,40.8
+60,"Cascades, Westferry Road",537115,180074,Kerbside,56,40.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,44.3,43.9,51.3,54.4,51.1
+61,Bow Rd/Alfred St,537056,182773,Kerbside,51.1,41.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.2,32,37.5,46.7,42.6
+62,Mast House Terrace,537348,178690,Kerbside,47.2,34.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,32,34.6,37,45.2,42.1
+63,Millwall Park,538246,178689,Urban background,44.8,37,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,1.2,22.9,26.7,31.1,28.1
+64,Limeharbour,537953,179357,Kerbside,56.7,54.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,45.6,52.2,51.3,54.3,54.3
+65,Manchester Road/East Ferry Road,538032,178360,Kerbside,43.5,32.5,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.5,33,33.7,40.8,missing
+66,Millwall Park,538258,178689,Urban background,31.5,25.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,18.6,24.8,29.6,29.4,25.7
+67,Seyssel Street,538544,178767,Kerbside,48.6,32.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,33.9,35.5,39.9,38.5,42.3
+68,Manchester Road/Ollife Street ,538431,179044,Kerbside,45.7,31,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,missing,39.3,44.5,42.4
+69,Lawnhouse Close ,538190,179750,Kerbside,44.9,37.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,26.7,35.6,40.5,45.1,41.2
+70,Admirals Way,537424,179910,Kerbside,50.6,38.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,24.4,29.1,33.2,40,26.2
+71,Toynbee St/Commercial St,533689,181705,Roadside,63.2,56.7,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,missing,47,54.1,51
+72,Prestons Road/ Coldharbour,538364,180188,Kerbside,50.7,39.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,39.9,43.8,43.7,48.1,44.4
+73,John Smith Mews,538742,180756,Kerbside,42.9,32.5,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,28.3,32.1,36.6,38.9,39.7
+74,Poplar High St/Cotton St,538244,180761,Kerbside,102.2,74.6,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,97,90.5,85.9,85.2,62
+75,Hale Street,537661,180768,Kerbside,42,34.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,24.6,30,35.4,37.2,36.1
+76,Chrisp Street/E India Dock Road ,537940,181021,Kerbside,54.9,44.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,43,46.1,46.4,51.6,48.5
+77,Morris/Barchester Street,537731,181761,Kerbside,51,39.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,33.2,missing,31,38.1,38.3
+78,Devons Road / Campbell Road ,537577,182232,Kerbside,52.9,39.9,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,41.3,37.9,missing,71.7,42.8
+79,Hatfield Terrace/Fairfield Road,537355,183059,Kerbside,38.8,31.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.8,29.4,32.3,39.2,39.1
+80,Wrexham Road,537581,183209,Kerbside,44.8,34,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,35.1,38.3,39.1,46,43.9
+81,Bromley High Street/ St Leonards,537868,182912,Kerbside,49.4,34.9,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,35.8,40,41.7,43.6,45.3
+82,Devas Street /Devons road,537821,182332,Kerbside,52.7,38.5,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,38.3,missing,25.4,50.8,48.6
+83,Zetland Street/A12,538178,181747,Kerbside,63.1,48.5,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,70.3,64,55,58.3,60.6
+84,Blair Street (End of Street),538365,181180,Roadside,67.4,58.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,42.1,40.5,52.7,51.5,51.5
+85,Portree Street,538895,181296,Kerbside,57.3,45.2,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,41.7,43.8,50.3,56.8,54.8
+86,Newport Avenue,538954,180872,Kerbside,39.7,28.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,25.4,30,25.2,37.3,34.9
+87,Mile End Road Corner Bancroft Rd,535929,182220,Kerbside,48.5,35.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,38.4,43.9,40.6,43.2,44.4
+88,Shirbutt St o/s Holy Family School,537555,180892,Kerbside,39.6,28.1,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,23.3,25.6,28.5,36.7,35.6
+89,Thames Path Storers Quay,538730,178733,Roadside,39.1,28.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,missing,31.7,40.4,35.6
+90,Sextant Avenue,538674,178888,Kerbside,35.8,26.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,25.2,27,32.1,32.3

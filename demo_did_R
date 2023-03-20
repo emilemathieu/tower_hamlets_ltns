@@ -1,0 +1,35 @@
+import pandas as pd
+import numpy as np
+import statsmodels.formula.api as smf
+
+# Load data from CSV file
+df = pd.read_csv('XXX.csv')
+
+# Convert Covid_lockdown column to 0/1 binary variable
+df['Covid_lockdown'] = np.where(df['Covid_lockdown'] == 'Y', 1, 0)
+
+# Create treat and control groups
+df['treat'] = np.where(df['LTN_situation'] == 'Boundary', 1, 
+                       np.where(df['LTN_situation'] == 'Internal', 2, 
+                                np.where(df['LTN_situation'] == 'External', 0, 0)))
+
+# Create time variable as a categorical variable
+df['time'] = pd.Categorical(df['Month.year'])
+
+# Create post-treatment variable
+df['post'] = np.where((df['Which_LTN'] == "St Peter's") & (df['Month.year'] >= "2020-07-01") |
+                      (df['Which_LTN'] == "Canonbury") & (df['Month.year'] >= "2020-08-01") |
+                      (df['Which_LTN'] == "Clerkenwell") & (df['Month.year'] >= "2020-09-01") |
+                      (df['Which_LTN'] == "Canon St Peters") & (df['Month.year'] >= "2020-07-01"), 1, 0)
+
+# Create policy variable (when its boundary/internal and after LTN is applied)
+df['policy'] = df['treat'] * df['post'] 
+
+# Remove rows with missing NO2 values
+df = df.dropna(subset=['NO2'])
+
+# Fit DiD model
+lm2 = smf.ols('np.log(NO2) ~ C(treat) + C(time) + C(policy) + C(Location)', data=df).fit()
+
+# Print model summary
+print(lm2.summary())
