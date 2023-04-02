@@ -40,8 +40,8 @@ Site no,Location,Grid squaresX,Grid squaresY,Site Type,Jan-18,Feb-18,Mar-18,Apr-
 39,Harford St/Mile End Rd,536089,182258,Roadside,59.8,56.4,64.7,53.4,58.7,58.7,51.1,42.6,50.4,54.1,49.9,57.2
 40,Thoydon Rd,536105,183049,Kerbside,Missing,47.7,54.9,46.5,Missing,34.5,46.8,40.3,49.8,53,49.3,54.3
 41,Ford Close/Roman Rd,536457,183301,Roadside,55.7,54.7,55.5,35.1,52.9,52.1,51,41.1,55.4,47.2,50.1,48.7
-42,Victoria Park (Co-location site),536494,184170,Urban background,33.3,33.3,33.6,27.9,23.7,19.4,22.3,22.4,27,30.7,36.4,39.3
-43,Victoria Park (Co-location site),536494,184170,Urban background,33.6,33.6,33.2,28.2,24.2,19.8,23.4,23.1,28.7,26.7,32.6,37.4
+42,Victoria Park,536494,184170,Urban background,33.3,33.3,33.6,27.9,23.7,19.4,22.3,22.4,27,30.7,36.4,39.3
+43,Victoria Park,536494,184170,Urban background,33.6,33.6,33.2,28.2,24.2,19.8,23.4,23.1,28.7,26.7,32.6,37.4
 44,Parnell Rd/Old Ford Rd,536875,183740,Kerbside,48.5,58.3,56.6,53.1,48.4,38.5,43.3,Missing,52.5,54.7,1.1,51.7
 45,St Stephen's Rd/Tredegar Rd,536713,183070,Kerbside,62.3,61.2,39.3,55.3,49.6,41.2,52.5,280.4,51.6,60.2,62.5,63.2
 46,Rhondda Grove/Mile End Rd,536542,182589,Kerbside,Missing,54.6,140.2,80.2,43.7,Missing,28.8,Missing,46.9,50.4,Missing,56.1

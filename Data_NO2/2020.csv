@@ -40,8 +40,8 @@ Site no,Location,Grid squaresX,Grid squaresY,Site Type,Jan-20,Feb-20,Mar-20,Apr-
 39,Harford St/Mile End Rd,536089,182258,Roadside,44.2,31.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,34.5,40.5,38.2,40.4,39.3
 40,Thoydon Rd,536105,183049,Kerbside,missing,1.4,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.8,29.4,30.1,41.8,36.8
 41,Ford Close/Roman Rd,536457,183301,Roadside,44.4,35.1,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,missing,39.3,36.7,39,40
-42,Victoria Park (Co-location site),536494,184170,Urban background,32.4,23.1,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,18.7,19.5,24,28.5,26.6
-43,Victoria Park (Co-location site),536494,184170,Urban background,30.6,22.9,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,17.5,18.4,21.6,27.3,28.6
+42,Victoria Park,536494,184170,Urban background,32.4,23.1,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,18.7,19.5,24,28.5,26.6
+43,Victoria Park,536494,184170,Urban background,30.6,22.9,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,17.5,18.4,21.6,27.3,28.6
 44,Parnell Rd/Old Ford Rd,536875,183740,Kerbside,51.3,39.3,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30.2,36.9,38.6,44.9,41.9
 45,St Stephen's Rd/Tredegar Rd,536713,183070,Kerbside,54.8,40,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,41.2,45,41,48.5,45.2
 46,Rhondda Grove/Mile End Rd,536542,182589,Kerbside,47.7,37.8,Lockdown,Lockdown,Lockdown,Lockdown,Lockdown,30,missing,39.6,38,missing

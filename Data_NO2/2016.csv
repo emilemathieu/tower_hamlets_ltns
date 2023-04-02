@@ -1,7 +1,7 @@
 Site no,Location,Grid squaresX,Grid squaresY,Site Type,Jan-16,Feb-16,Mar-16,Apr-16,May-16,Jun-16,Jul-16,Aug-16,Sep-16,Oct-16,Nov-16,Dec-16
 1,Colombia Rd/Gossett Street,533883,182815,Roadside,66.4,55,48.1,47.8,35.5,45.9,39.9,42.6,48.8,56.8,Missing,Missing
 2,Calvert Ave/Boundary Street,533507,182569,Roadside,63,Missing,70,39.6,47.8,47.5,46.2,45.6,Missing,54,60.7,57.8
-3,Bethnal Grn Rd/ Brick Lane,533860,182442,Roadside,72.6,65.7,52.4,46.6,56.2,58.6,51.4,50.6,58.6,56.4,67.6,73
+3,Bethnal Green Rd/ Brick Lane,533860,182442,Roadside,72.6,65.7,52.4,46.6,56.2,58.6,51.4,50.6,58.6,56.4,67.6,73
 4,Commercial St/Calvin St,533583,182066,Roadside,78.5,69.7,89.4,75.8,missing,69.1,69.9,38.2,87.6,99.2,94.2,86.2
 5,Whitechapel High St (KFC),533985,181426,Roadside,79.3,Missing,Missing,86.6,80.8,85.4,80.4,82.7,30.9,97.5,106.4,95.3
 6,Mansell St,533801,180726,Roadside,Missing,88.7,105.8,99,missing,91.1,108.9,86,Missing,66.3,90.8,Missing
@@ -66,7 +66,7 @@ Site no,Location,Grid squaresX,Grid squaresY,Site Type,Jan-16,Feb-16,Mar-16,Apr-
 78,Devons Road / Campbell Road ,537577,182232,Roadside,69.5,58,62.1,59.8,52.8,51.8,50,56.2,54,77.2,73.8,77
 79,Hatfield Terrace/Fairfield Road,537356,183059,Roadside,30.5,43,44.6,42.6,29,31.4,27.3,39.4,36.9,57.1,Missing,56.5
 80,Wrexham Road,537581,183208,Roadside,52.9,55.7,57.5,54.6,39.8,35.5,35.4,55.9,43.6,88.6,66,57
-81,Bromley High Street/ St leonards,537868,182912,Roadside,53.9,47.4,47.6,49.1,missing,36.6,32.7,45.2,44,79.4,59.4,67.6
+81,Bromley High Street/ St Leonards,537868,182912,Roadside,53.9,47.4,47.6,49.1,missing,36.6,32.7,45.2,44,79.4,59.4,67.6
 82,Devas Street /Devons road,537821,182332,Roadside,70.5,70.6,51.4,65.1,missing,43.7,47.2,55.1,64.7,82.6,84.4,80.4
 83,Zetland Street/A12,538178,181747,Roadside,85.8,72.3,80.2,72.7,62.8,75.4,68.5,84.8,90.9,115.2,88,83.6
 84,Blair Street (End of Street),538366,181180,Roadside,87,71.7,58.2,55.6,56.7,58.9,57.8,58.1,56.8,63.3,60.8,Missing
