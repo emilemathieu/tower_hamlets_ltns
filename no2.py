@@ -8,7 +8,7 @@ years = list(range(2015,2022+1))
 appended_data = pd.DataFrame()
 
 for y in years:
-    df_years = pd.read_csv('Data_NO2/'+ str(y) + '.csv')
+    df_years = pd.read_csv('data/Data_NO2/'+ str(y) + '.csv')
     # df_years = df_years.drop(columns=['Site no','Grid squaresX', 'Grid squaresY', 'Site Type'])
     df_years = df_years.drop(columns=['Site no', 'Site Type'])
     # df_years = (df_years.set_index(['Location'])
