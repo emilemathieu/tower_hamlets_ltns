@@ -1,54 +1,55 @@
 #%%
+import os
+from functools import partial
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-import os
 
 os.environ["USE_PYGEOS"] = "0"
 import geopandas as gpd
 import contextily as cx
-from shapely.geometry import Point
-from pyproj import CRS
+from shapely.geometry import Point, LineString, Polygon
+from shapely.ops import transform
+from pyproj import CRS, pyproj
+
 import numpy as np
 
 # %matplotlib inline
 
 
 #%%
-# LSOA
-# path_census = (
-#     "../data/Census_Residential_Data_Pack_2011/Local_Authority_Districts/E09000030/"
-# )
-# lsoas_link = path_census + "shapefiles/E09000030.shp"
-lsoas_link = "../data/Index_of_Multiple_Deprivation_IMD/Local_Authority_Districts/E09000030/shapefiles/E09000030.shp"
-# lsoas_link = "../data/LLSOA_Dec_2021/LSOA_PopCentroids_EW_2021_V3.shp"
+# Load LSOA data
+
+lsoas_link = "../data/LSOA/LSOA_2011_London_gen_MHW.shp"
 lsoas = gpd.read_file(lsoas_link)
 lsoas = lsoas.to_crs(epsg=3857)  # for cx.add_basemap
-lsoas['LSOA21CD'] = lsoas['lsoa11cd']
+#%%
 
 lsoas2 = gpd.read_file(
     "../data/LSOA_(2011)_to_LSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales.csv"
 )
-# lsoa_col = 'F_LSOA11CD'
-lsoa_col = 'LSOA21CD'
-lsoa_th = lsoas2[lsoas2["LAD22NM"] == "Tower Hamlets"][lsoa_col].to_list()
-inner_boroughs = ['Camden', 'Greenwich', 'Hackney', 'Hammersmith and Fulham', 'Islington', 'Kensington and Chelsea', 'Lambeth', 'Lewisham', 'Southwark', 'Tower Hamlets', 'Wandsworth', 'Westminster']
-lsoa_inner = lsoas2[lsoas2["LAD22NM"].isin(inner_boroughs)][lsoa_col].to_list()
+lsoas2['LSOA11CD'] = lsoas2['F_LSOA11CD']
+del lsoas2["geometry"]
+lsoas2 = gpd.GeoDataFrame(pd.merge(lsoas2, lsoas, on="LSOA11CD"))
 
+lsoa_col = 'F_LSOA11CD'
+# lsoa_col = 'LSOA21CD'
+lsoa_th_df = lsoas2[lsoas2["LAD22NM"] == "Tower Hamlets"]
+lsoa_th = lsoa_th_df[lsoa_col].to_list()
+inner_boroughs = ['Camden', 'Greenwich', 'Hackney', 'Hammersmith and Fulham', 'Islington', 'Kensington and Chelsea', 'Lambeth', 'Lewisham', 'Southwark', 'Tower Hamlets', 'Wandsworth', 'Westminster', 'City of London']
+lsoa_inner_df = lsoas2[lsoas2["LAD22NM"].isin(inner_boroughs)]
+lsoa_inner = lsoa_inner_df[lsoa_col].to_list()
+lsoa_th_and_neigh_df = lsoas2[lsoas2["LAD22NM"].isin(['Tower Hamlets', 'Hackney', 'City of London'])]
+lsoa_th_and_neigh = lsoa_th_and_neigh_df[lsoa_col].to_list()
 
-#%%
-road_link = "../data/greater-london-latest-free/gis_osm_roads_free_1.shp"
-roads = gpd.read_file(road_link)
-lsoas = lsoas.to_crs(epsg=3857)
-# roads_of_interest = ['Hackney Road', 'Bethnal Green Road', 'Cambridge Heath Road']
-# roads = roads[roads['name'].isin(roads_of_interest)]
-roads_of_interest = ['A1208', 'A1209', 'A107', 'A10']
-roads = roads[roads['ref'].isin(roads_of_interest)]
+lsoa_th_df.plot()
+lsoa_inner_df.plot()
 
 # %%
-
-# road accidents / casualties
+# Load # road collisions
 # https://www.data.gov.uk/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/road-safety-data
+
 path_road = "../data/road_collisions"
 dfs = []
 for year in [2018, 2019, 2020, 2021, 2022, '2023_mid_year_unvalidated']:
@@ -57,38 +58,99 @@ for year in [2018, 2019, 2020, 2021, 2022, '2023_mid_year_unvalidated']:
     # dfs.append(data[in_th_idx])
     dfs.append(data)
 df = pd.concat(dfs)
-
-# df["lsoa11cd"] = df["lsoa_of_accident_location"]
-# df = gpd.GeoDataFrame(pd.merge(df, lsoas, on="lsoa11cd"))
 df["LSOA21CD"] = df["lsoa_of_accident_location"]
-df = gpd.GeoDataFrame(pd.merge(df, lsoas, on="LSOA21CD"))
+# df = gpd.GeoDataFrame(pd.merge(df, lsoas, on="LSOA21CD"))
+
+df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+df['og_geometry'] = gpd.points_from_xy(df.longitude, df.latitude)
+df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
+
+#%%
+# Load boundary roads
+
+road_link = "../data/greater-london-latest-free/gis_osm_roads_free_1.shp"
+roads = gpd.read_file(road_link).to_crs(epsg=3857)
+roads_of_interest = ['Hackney Road', 'Bethnal Green Road', 'Cambridge Heath Road', 'Shoreditch High Street']
+roads = roads[roads['name'].isin(roads_of_interest)]
+roads.plot()
 
 # %%
 
-# Parse traffic filters
+# Define LTNs in Tower Hamlets
 
 # list of LSOA with traffic filters
 # ltns = {
 #     "obgr": ["E01004198", "E01004199", "E01004200", "E01004203", "E01004204"],
 #     "weavers": ["E01004311", "E01004312", "E01004313", "E01004315", "E01004316"],
 # }
-# ltns = {
-#     "obgr": ["E01004198", "E01004199", "E01004200", "E01004203", "E01004204"],
-#     "weavers": ["E01004311", "E01004312", "E01004313", "E01004315", "E01004316"],
-# }
-ltns = ["E01004198", "E01004199", "E01004200", "E01004203", "E01004204", "E01035664", "E01004311", "E01004312", "E01004313", "E01004315", "E01004316"]
+ltns = ["E01004198", "E01004199", "E01004200", "E01004203", "E01004204", "E01004311", "E01004312", "E01004313", "E01004315", "E01004316"]
+ltns += ["E01004318", "E01004314"] # NOTE: north of Weavers
 # idx_obgr = df["lsoa11cd"].isin(ltns["obgr"])
 # idx_weavers = df["lsoa11cd"].isin(ltns["weavers"])
+lsoa_ltn_df = lsoa_th_df[lsoa_th_df['LSOA11CD'].isin(ltns)]
 
-crs = CRS.from_epsg(4326)
-# min_lat, min_lon, max_lat, max_lon = 51.510000, -0.078000, 51.536322, -0.035000
+# latitude and longitude of traffic filters from https://talk.towerhamlets.gov.uk/4093/widgets/12671/documents/29230 and https://talk.towerhamlets.gov.uk/4093/widgets/12671/documents/29229
+traffic_filters = {
+    "Temple Street": [51.52973, -0.05994],
+    "Canrobert Street": [51.52940, -0.06055],
+    "Clarkson Street": [51.52879, -0.05898],
+    "Punderson's Gardens": [51.52829, -0.05788],
+    "Teesdale Street": [51.529305, -0.061291],
+    "Pollard Row": [51.527873, -0.063878],
+    "Quilter Street": [51.52867, -0.06989],
+    "Wellington Row": [51.52850, -0.06723],
+    "Gosset Street": [51.528313, -0.071200],
+    "Old Nichol Street": [51.52470, -0.07642],
+    "Arnold Circus": [51.526051, -0.074899],
+}
+geometry = [Point(reversed(v)) for _, v in traffic_filters.items()]
+
+filters_df = gpd.GeoDataFrame(geometry=geometry, crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+
 # min_lat, min_lon, max_lat, max_lon = 51.510000, -0.078000, 51.536322, -0.035000
 min_lat, min_lon, max_lat, max_lon = 51.520000, -0.078000, 51.536322, -0.05
 bounds = gpd.GeoDataFrame(
-    geometry=[Point([min_lon, min_lat]), Point([max_lon, max_lat])], crs=crs
+    geometry=[Point([min_lon, min_lat]), Point([max_lon, max_lat])], crs=CRS.from_epsg(4326)
 )
 minx, miny, maxx, maxy = bounds.to_crs(epsg=3857).total_bounds
-# minx, miny, maxx, maxy = df.total_bounds
+
+
+#%%
+
+
+project = partial(
+pyproj.transform,
+pyproj.Proj('EPSG:4326'),
+pyproj.Proj('EPSG:3857'))
+# pyproj.Proj('EPSG:32633'))
+# pyproj.Proj('EPSG:4326'))
+
+ltn_borders = [(51.532572, -0.057133), (51.530846, -0.072525), (51.526941, -0.077971), (51.523735, -0.077214), (51.523917, -0.074064), (51.525771, -0.069619), (51.527547, -0.055430)]
+ltn_borders = [(lon, lat) for lat, lon in ltn_borders] #NOTE: swap lat and lon
+ltn_borders = [Point(lat, lon) for lat, lon in ltn_borders]
+poly = Polygon(ltn_borders)
+ltn_df = gpd.GeoDataFrame(geometry=[poly], crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+ltn_borders = gpd.GeoDataFrame(geometry=np.array(ltn_borders), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+ltn_df.plot()
+ltn_borders.plot()
+
+
+# poly_in_3857_coords = transform(project, poly)
+df['is_ltn'] = df['og_geometry'].apply(lambda x: poly.contains(x))
+
+
+def dist_to_boundary_roads(point, bool=True):
+    min_dist = float('inf')
+    if not bool:
+        return min_dist
+    for _, road in roads.iterrows():
+        line = road.geometry
+        dist = point.distance(line)
+        if dist < min_dist:
+            min_dist = dist
+    return min_dist
+
+df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_ltn']), axis=1)
 
 
 #%%
@@ -99,11 +161,13 @@ minx, miny, maxx, maxy = bounds.to_crs(epsg=3857).total_bounds
 # 2. Injuries at the LTN boundary, defined being located from 25m inside to 50m outside the LTN boundary.
 # 3. Elsewhere in Tower Hamlets.
 # 4. Elsewhere in Inner London.
-df['is_ltn'] = df["LSOA21CD"].isin(ltns)
+# df['is_ltn'] = df["LSOA21CD"].isin(ltns)
 # NOTE: LTN = low traffic neighbourhood. Injuries are limited to those that are neither on an A or B road, nor at the intersection with an A or B road.
-# TODO: need to remove A or B road
+df['is_inside_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] > 25)
 df['is_th'] = df["lsoa_of_accident_location"].isin(lsoa_th) & ~df['is_ltn']
 df['is_inner'] = df["lsoa_of_accident_location"].isin(lsoa_inner) & ~df['is_th']
+df['is_boundary_ltn'] = (df['is_ltn'] & (df['dist_to_boundary_roads'] <= 25)) | (df['is_inner'] & (df['dist_to_boundary_roads'] <= 50)) | (df['is_th'] & (df['dist_to_boundary_roads'] <= 50))
+
 
 # Define dates
 # 1. Pre-LTN: January 2018 to June 2020
@@ -117,8 +181,8 @@ df['post_ltn'] = df['date'] >= '01/07/2021'
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
 print('LTN versus Tower Hamlets')
 
-in_ltn_pre_ltn = ((df['is_ltn'] == True) & (df['pre_ltn'] == True)).sum()
-in_ltn_post_ltn = ((df['is_ltn'] == True) & (df['post_ltn'] == True)).sum()
+in_ltn_pre_ltn = ((df['is_inside_ltn'] == True) & (df['pre_ltn'] == True)).sum()
+in_ltn_post_ltn = ((df['is_inside_ltn'] == True) & (df['post_ltn'] == True)).sum()
 
 in_th_pre_ltn = ((df['is_th'] == True) & (df['pre_ltn'] == True)).sum()
 in_th_post_ltn = ((df['is_th'] == True) & (df['post_ltn'] == True)).sum()
@@ -149,17 +213,22 @@ collision_dfs, colors = [], []
 #     df[df['post_ltn'] & (df['is_ltn'] | df['is_th'])]
 # ]
 dfs = [
-    df[df['pre_ltn'] & (df['is_ltn'])],
-    df[df['post_ltn'] & (df['is_ltn'])]
+    df[df['pre_ltn'] & (df['is_th_and_neigh'])],
+    df[df['post_ltn'] & (df['is_th_and_neigh'])]
 ]
+# dfs = [
+#     df[df['pre_ltn'] & (df['is_inside_ltn'] | df['is_boundary_ltn'])],
+#     df[df['post_ltn'] & (df['is_inside_ltn'] | df['is_boundary_ltn'])]
+# ]
+# dfs = [df[(df['is_inside_ltn'] | df['is_boundary_ltn'])]]
+# dfs = [df[(df['is_th'] | df['is_inner'])]]
 # dfs = [
 #     df[df['is_ltn']],
 # ]
 
 severity_color = {1: 'yellow', 2: 'orange', 3: 'red'}
 for subset_df in dfs:
-    geometry = [Point([lon, lat]) for lon, lat in zip(subset_df['longitude'], subset_df['latitude'])]
-    collision_dfs.append(gpd.GeoDataFrame(geometry=geometry, crs=CRS.from_epsg(4326)).to_crs(epsg=3857))
+    collision_dfs.append(subset_df)
     colors.append(subset_df['accident_severity'].apply(lambda x: severity_color[int(x)]))
 titles = ['pre LTN', 'post LTN']
 # %%
@@ -173,43 +242,100 @@ cmaps = [
 fig, axes = plt.subplots(len(collision_dfs), 1, figsize=(20, 20))
 axes = axes if isinstance(axes, np.ndarray) else [axes]
 # cmap = sns.color_palette("crest", as_cmap=True)
-for i, (ax, collision_df, color, title, cmap) in enumerate(zip(axes, collision_dfs, colors, titles, cmaps)):
+for i, (ax, sub_df, color, title, cmap) in enumerate(zip(axes, collision_dfs, colors, titles, cmaps)):
     ax.set_xlim(minx, maxx)
     ax.set_ylim(miny, maxy)
 
-    # title = 'Multiple deprivation index per LSOA in Tower Hamlets'
     ax.set_title(title, fontdict={"fontsize": "30", "fontweight": "3"})
     ax.axis("off")
-    ax = collision_df.plot(
-            ax=ax,
-            markersize=100,
-            color=color.to_list(),
-            marker="*",
-            label="collisions",
-            zorder=0,
-        )
-    # ax = roads.plot(ax=ax, label='roads', color='black')
-    df[df['is_ltn']].plot(ax=ax, alpha=0.1, edgecolor="k", column='is_ltn')
+    kwargs = {"markersize": 200, "marker": "*", "label": "collisions", "zorder": 3}
+    filters_df.plot(ax=ax, markersize=200, color="blue", marker="x")
+    sub_df[sub_df['is_inside_ltn']].plot(ax=ax, color='red', **kwargs)
+    sub_df[sub_df['is_boundary_ltn']].plot(ax=ax, color='orange', **kwargs)
+    sub_df[sub_df['is_th_and_neigh']].plot(ax=ax, color='black', **kwargs)
+    roads.plot(ax=ax, label='roads', color='black')
+    # lsoa_ltn_df.plot(ax=ax, alpha=0.5, edgecolor="k")
+    ltn_df.plot(ax=ax, alpha=0.5, edgecolor="k", label='LTN polygon')
+    ltn_borders.plot(ax=ax, alpha=1., edgecolor="k", markersize=300, label='LTN vertices')
+    # lsoa_th_df.plot(ax=ax, alpha=0.5, edgecolor="k")
     # sm = plt.cm.ScalarMappable(
     #     cmap=cmap, norm=plt.Normalize(vmin=df[metric].min(), vmax=df[metric].max())
     # )  # empty array for the data range
     # cbar = fig.colorbar(sm, shrink=0.4, ax=ax)
     cx.add_basemap(ax)
-    ax.legend()
+    # ax.legend()
 fig.tight_layout()
 
 
 
 # plot(metrics, cmaps)
 # %%
-from shapely.geometry import LineString, Point
 
-# line_strings = [LineString([(-1.15, 0.12), (9.9, -1.15), (0.13, 9.93)]),
-#                     LineString([(-2.15, 0.12), (8.9, -2.15), (0.13 , 8.93)])]
-# points = [Point(5.41, 3.9), Point (6.41, 2.9)]
+# %%
 
-# geom = line_strings + points
-# gdf = gpd.GeoDataFrame(geometry=geom)
+# def is_side_of(point, road, side, bool=True):
+#     out = False
+#     if not bool:
+#         return out
+#     point = transform(project, point)
+#     for _, road in roads.iterrows():
+#         geometry = transform(project, road.geometry)
+#         for lat, lon in geometry.coords:
+#             print(lat, lon, ' vs ', point.x, point.y)
+#             if side == 'east' and lon < point.y:
+#                 return True
+#             if side == 'west' and lon > point.y:
+#                 return True
+#             if side == 'south' and lat > point.x:
+#                 return True
+#             if side == 'north' and lat < point.x:
+#                 return True
+#     return out
 
-# gdf.plot()
-roads.plot(ax=ax, label='roads', color='black')
+# def is_west_of_cambridge_heath_rd(point, bool=True):
+#     cambridge_heath_rd = roads[roads['name'] == 'Cambridge Heath Road']
+#     return is_side_of(point, cambridge_heath_rd, side='west', bool=bool)
+
+# def is_north_of_bethnal_green_rd(point, bool=True):
+#     bethnal_green_rd = roads[roads['name'] == 'Bethnal Green Road']
+#     return is_side_of(point, bethnal_green_rd, side='north', bool=bool)
+
+# if df['is_west_of_cambridge_heath_rd'].sum() == 0:
+#     df['is_west_of_cambridge_heath_rd'] = None
+#     df.loc[df['is_ltn'], 'is_west_of_cambridge_heath_rd'] = df[df['is_ltn']].apply(lambda x: is_west_of_cambridge_heath_rd(x['geometry']), axis=1)
+
+# if df['is_north_of_bethnal_green_rd'].sum() == 0:
+#     df['is_north_of_bethnal_green_rd'] = None
+#     df.loc[df['is_ltn'], 'is_north_of_bethnal_green_rd'] = df[df['is_ltn']].apply(lambda x: is_north_of_bethnal_green_rd(x['geometry']), axis=1)
+
+
+# df['is_inside_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] > 25) & df['is_west_of_cambridge_heath_rd'] & df['is_north_of_bethnal_green_rd']
+# df['is_boundary_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] <= 25) | (df['is_inner'] & (df['dist_to_boundary_roads'] <= 50)) | (df['is_th'] & (df['dist_to_boundary_roads'] <= 50))
+
+#%%
+
+from shapely import geometry
+
+polygon = [(0, 0), (1, 0), (1, 1), (0, 1)]
+
+p1 = [0.5, 0.5]
+
+line = geometry.LineString(polygon)
+point = geometry.Point(p1[0],p1[1])
+polygon = geometry.Polygon(line)
+
+print(polygon.contains(point))
+
+#%%
+# p1 = list(reversed([51.528784, -0.066724]))
+p1 = Point([-0.066724, 51.528784])
+xs, ys = poly.exterior.coords.xy
+print(poly.contains(p1))
+# for point in 
+#     print(point, point[0], point[1])
+#     xs.append(point[0])
+#     ys.append(point[1])
+
+plt.plot(xs,ys,'*r')
+plt.plot(p1.coords.xy[0],p1.coords.xy[1], '.b')
+plt.show()
