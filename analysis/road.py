@@ -108,7 +108,7 @@ geometry = [Point(reversed(v)) for _, v in traffic_filters.items()]
 filters_df = gpd.GeoDataFrame(geometry=geometry, crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
 
 # min_lat, min_lon, max_lat, max_lon = 51.510000, -0.078000, 51.536322, -0.035000
-min_lat, min_lon, max_lat, max_lon = 51.520000, -0.078000, 51.536322, -0.05
+min_lat, min_lon, max_lat, max_lon = 51.520000, -0.080000, 51.536322, -0.052
 bounds = gpd.GeoDataFrame(
     geometry=[Point([min_lon, min_lat]), Point([max_lon, max_lat])], crs=CRS.from_epsg(4326)
 )
@@ -125,32 +125,40 @@ pyproj.Proj('EPSG:3857'))
 # pyproj.Proj('EPSG:32633'))
 # pyproj.Proj('EPSG:4326'))
 
-ltn_borders = [(51.532572, -0.057133), (51.530846, -0.072525), (51.526941, -0.077971), (51.523735, -0.077214), (51.523917, -0.074064), (51.525771, -0.069619), (51.527547, -0.055430)]
-ltn_borders = [(lon, lat) for lat, lon in ltn_borders] #NOTE: swap lat and lon
-ltn_borders = [Point(lat, lon) for lat, lon in ltn_borders]
-poly = Polygon(ltn_borders)
+ltn_borders_list = [
+    (51.532572, -0.057133), (51.531395, -0.064693), (51.530846, -0.072525), (51.529827, -0.074711), (51.529258, -0.074914), (51.527835, -0.076487),
+    (51.526941, -0.077971), (51.526306, -0.078077), (51.524729, -0.077161),
+    (51.523735, -0.077214), (51.523701, -0.075217), (51.523917, -0.074064), (51.525771, -0.069619), (51.526525, -0.064638),
+    (51.527547, -0.055430), (51.530254, -0.056104)]
+ltn_borders_list = [(lon, lat) for lat, lon in ltn_borders_list] #NOTE: swap lat and lon
+ltn_borders_list = [Point(lat, lon) for lat, lon in ltn_borders_list]
+poly = Polygon(ltn_borders_list)
 ltn_df = gpd.GeoDataFrame(geometry=[poly], crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
-ltn_borders = gpd.GeoDataFrame(geometry=np.array(ltn_borders), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+ltn_borders = gpd.GeoDataFrame(geometry=np.array(ltn_borders_list), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
 ltn_df.plot()
 ltn_borders.plot()
+
+poly2 = Polygon(ltn_borders['geometry'].to_list())
 
 
 # poly_in_3857_coords = transform(project, poly)
 df['is_ltn'] = df['og_geometry'].apply(lambda x: poly.contains(x))
 
 
-def dist_to_boundary_roads(point, bool=True):
-    min_dist = float('inf')
-    if not bool:
-        return min_dist
-    for _, road in roads.iterrows():
-        line = road.geometry
-        dist = point.distance(line)
-        if dist < min_dist:
-            min_dist = dist
-    return min_dist
+# def dist_to_boundary_roads(point, bool=True):
+#     min_dist = float('inf')
+#     if not bool:
+#         return min_dist
+#     for _, road in roads.iterrows():
+#         line = road.geometry
+#         dist = point.distance(line)
+#         if dist < min_dist:
+#             min_dist = dist
+#     return min_dist
 
-df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_ltn']), axis=1)
+# df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_ltn']), axis=1)
+# df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_th_and_neigh']), axis=1)
+df['dist_to_boundary_roads'] = df.apply(lambda x: poly2.exterior.distance(x['geometry']), axis=1)
 
 
 #%%
@@ -163,11 +171,14 @@ df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geom
 # 4. Elsewhere in Inner London.
 # df['is_ltn'] = df["LSOA21CD"].isin(ltns)
 # NOTE: LTN = low traffic neighbourhood. Injuries are limited to those that are neither on an A or B road, nor at the intersection with an A or B road.
-df['is_inside_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] > 25)
+dist_int_ltn = 50
+dist_ext_ltn = 50
+df['is_inside_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] > dist_int_ltn)
 df['is_th'] = df["lsoa_of_accident_location"].isin(lsoa_th) & ~df['is_ltn']
 df['is_inner'] = df["lsoa_of_accident_location"].isin(lsoa_inner) & ~df['is_th']
-df['is_boundary_ltn'] = (df['is_ltn'] & (df['dist_to_boundary_roads'] <= 25)) | (df['is_inner'] & (df['dist_to_boundary_roads'] <= 50)) | (df['is_th'] & (df['dist_to_boundary_roads'] <= 50))
-
+df['is_boundary_ltn'] = (df['is_ltn'] & (df['dist_to_boundary_roads'] <= dist_int_ltn)) | ((~df['is_ltn'] & df['is_th_and_neigh']) & (df['dist_to_boundary_roads'] <= dist_ext_ltn))
+# df['is_boundary_ltn'] = (~df['is_ltn'] & df['is_th_and_neigh']) & (df['dist_to_boundary_roads'] <= 50)
+print(df['is_boundary_ltn'].sum())
 
 # Define dates
 # 1. Pre-LTN: January 2018 to June 2020
@@ -179,52 +190,36 @@ df['post_ltn'] = df['date'] >= '01/07/2021'
 
 #%%
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
-print('LTN versus Tower Hamlets')
+from scipy.stats import fisher_exact
 
-in_ltn_pre_ltn = ((df['is_inside_ltn'] == True) & (df['pre_ltn'] == True)).sum()
-in_ltn_post_ltn = ((df['is_inside_ltn'] == True) & (df['post_ltn'] == True)).sum()
 
-in_th_pre_ltn = ((df['is_th'] == True) & (df['pre_ltn'] == True)).sum()
-in_th_post_ltn = ((df['is_th'] == True) & (df['post_ltn'] == True)).sum()
+for variable in ['is_inside_ltn', 'is_boundary_ltn']:
+    for control in ['is_th', 'is_inner']:
 
-ratio_ltn_vs_th = (in_ltn_post_ltn / in_th_post_ltn) / (in_ltn_pre_ltn / in_th_pre_ltn)
+        print(f'### {variable} versus {control}')
 
-print(f"LTN:   {in_ltn_pre_ltn} vs {in_ltn_post_ltn}")
-print(f"TH:    {in_th_pre_ltn} vs {in_th_post_ltn}")
-print(f"ratio: {ratio_ltn_vs_th}")
+        in_ltn_pre_ltn = ((df[variable] == True) & (df['pre_ltn'] == True)).sum()
+        in_ltn_post_ltn = ((df[variable] == True) & (df['post_ltn'] == True)).sum()
 
-print('LTN versus Inner London')
+        in_th_pre_ltn = ((df[control] == True) & (df['pre_ltn'] == True)).sum()
+        in_th_post_ltn = ((df[control] == True) & (df['post_ltn'] == True)).sum()
 
-in_inner_pre_ltn = ((df['is_inner'] == True) & (df['pre_ltn'] == True)).sum()
-in_inner_post_ltn = ((df['is_inner'] == True) & (df['post_ltn'] == True)).sum()
+        ratio_ltn_vs_th = (in_ltn_post_ltn / in_th_post_ltn) / (in_ltn_pre_ltn / in_th_pre_ltn)
+        table = np.array([[in_ltn_post_ltn, in_ltn_pre_ltn], [in_th_post_ltn, in_th_pre_ltn]])
+        # p_value = fisher_exact(table, alternative='greater')[1]
 
-ratio_ltn_vs_inner = (in_ltn_post_ltn / in_inner_post_ltn) / (in_ltn_pre_ltn / in_inner_pre_ltn)
-
-print(f"LTN:   {in_ltn_pre_ltn} vs {in_ltn_post_ltn}")
-print(f"INNER: {in_inner_pre_ltn} vs {in_inner_post_ltn}")
-print(f"ratio: {ratio_ltn_vs_inner}")
-
+        print(f"Variable:   {in_ltn_pre_ltn} vs {in_ltn_post_ltn}")
+        print(f"Control:    {in_th_pre_ltn} vs {in_th_post_ltn}")
+        print(f"ratio:      {ratio_ltn_vs_th:.2f}")
+        # print(f"p_value:    {p_value:.2f}")
 
 #%%
 collision_dfs, colors = [], []
 
-# dfs = [
-#     df[df['pre_ltn'] & (df['is_ltn'] | df['is_th'])],
-#     df[df['post_ltn'] & (df['is_ltn'] | df['is_th'])]
-# ]
 dfs = [
     df[df['pre_ltn'] & (df['is_th_and_neigh'])],
     df[df['post_ltn'] & (df['is_th_and_neigh'])]
 ]
-# dfs = [
-#     df[df['pre_ltn'] & (df['is_inside_ltn'] | df['is_boundary_ltn'])],
-#     df[df['post_ltn'] & (df['is_inside_ltn'] | df['is_boundary_ltn'])]
-# ]
-# dfs = [df[(df['is_inside_ltn'] | df['is_boundary_ltn'])]]
-# dfs = [df[(df['is_th'] | df['is_inner'])]]
-# dfs = [
-#     df[df['is_ltn']],
-# ]
 
 severity_color = {1: 'yellow', 2: 'orange', 3: 'red'}
 for subset_df in dfs:
@@ -248,28 +243,20 @@ for i, (ax, sub_df, color, title, cmap) in enumerate(zip(axes, collision_dfs, co
 
     ax.set_title(title, fontdict={"fontsize": "30", "fontweight": "3"})
     ax.axis("off")
-    kwargs = {"markersize": 200, "marker": "*", "label": "collisions", "zorder": 3}
-    filters_df.plot(ax=ax, markersize=200, color="blue", marker="x")
-    sub_df[sub_df['is_inside_ltn']].plot(ax=ax, color='red', **kwargs)
-    sub_df[sub_df['is_boundary_ltn']].plot(ax=ax, color='orange', **kwargs)
-    sub_df[sub_df['is_th_and_neigh']].plot(ax=ax, color='black', **kwargs)
+    kwargs = {"marker": "*", "zorder": 3}
+    filters_df.plot(ax=ax, markersize=200, color="blue", marker="x", label="modal filters")
+    sub_df[sub_df['is_th_and_neigh']].plot(ax=ax, color='black', **kwargs, markersize=200, label="all collisions")
+    sub_df[sub_df['is_inside_ltn']].plot(ax=ax, color='red', **kwargs, markersize=150, label="inner LTN collisions")
+    sub_df[sub_df['is_boundary_ltn']].plot(ax=ax, color='orange', **kwargs, label="boundary roads collisions")
     roads.plot(ax=ax, label='roads', color='black')
     # lsoa_ltn_df.plot(ax=ax, alpha=0.5, edgecolor="k")
     ltn_df.plot(ax=ax, alpha=0.5, edgecolor="k", label='LTN polygon')
     ltn_borders.plot(ax=ax, alpha=1., edgecolor="k", markersize=300, label='LTN vertices')
-    # lsoa_th_df.plot(ax=ax, alpha=0.5, edgecolor="k")
-    # sm = plt.cm.ScalarMappable(
-    #     cmap=cmap, norm=plt.Normalize(vmin=df[metric].min(), vmax=df[metric].max())
-    # )  # empty array for the data range
-    # cbar = fig.colorbar(sm, shrink=0.4, ax=ax)
     cx.add_basemap(ax)
-    # ax.legend()
+    ax.legend()
 fig.tight_layout()
 
-
-
 # plot(metrics, cmaps)
-# %%
 
 # %%
 
@@ -311,31 +298,3 @@ fig.tight_layout()
 
 # df['is_inside_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] > 25) & df['is_west_of_cambridge_heath_rd'] & df['is_north_of_bethnal_green_rd']
 # df['is_boundary_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] <= 25) | (df['is_inner'] & (df['dist_to_boundary_roads'] <= 50)) | (df['is_th'] & (df['dist_to_boundary_roads'] <= 50))
-
-#%%
-
-from shapely import geometry
-
-polygon = [(0, 0), (1, 0), (1, 1), (0, 1)]
-
-p1 = [0.5, 0.5]
-
-line = geometry.LineString(polygon)
-point = geometry.Point(p1[0],p1[1])
-polygon = geometry.Polygon(line)
-
-print(polygon.contains(point))
-
-#%%
-# p1 = list(reversed([51.528784, -0.066724]))
-p1 = Point([-0.066724, 51.528784])
-xs, ys = poly.exterior.coords.xy
-print(poly.contains(p1))
-# for point in 
-#     print(point, point[0], point[1])
-#     xs.append(point[0])
-#     ys.append(point[1])
-
-plt.plot(xs,ys,'*r')
-plt.plot(p1.coords.xy[0],p1.coords.xy[1], '.b')
-plt.show()
