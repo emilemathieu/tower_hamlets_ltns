@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<codeBook xsi:schemaLocation="ddi:codebook:2_5 http://www.ddialliance.org/Specification/DDI-Codebook/2.5/XMLSchema/codebook.xsd" version="2.5" xmlns="ddi:codebook:2_5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<docDscr>
+		<citation>
+			<titlStmt>
+				<titl>DDI2.5 XML CODEBOOK</titl>
+			</titlStmt>
+		</citation>
+	</docDscr>
+	<stdyDscr>
+		<citation>
+			<titlStmt>
+				<titl>Index of Multiple Deprivation (IMD) - 2010 - Local Authority District Geodata Pack: Tower Hamlets (E09000030)
+				</titl>
+				<altTitl/>
+			</titlStmt>
+			<rspStmt>
+				<AuthEnty>Alex Singleton</AuthEnty>
+				<AuthEnty>Michail Pavlis</AuthEnty>
+				<othId/>
+			</rspStmt>
+			<prodStmt>
+				<producer>ESRC Consumer Data Research Centre </producer>
+				<copyright>The following attribution statements must be used to acknowledge copyright and source in use of these datasets:
+Data provided by the ESRC Consumer Data Research Centre;2010;</copyright>
+				<fundAg>Economic and Social Research Council</fundAg>
+				<grantNo>ES/L011840/1</grantNo>
+			</prodStmt>
+			<distStmt>
+				<depositr></depositr>
+				<distDate></distDate>
+			</distStmt>
+			<serStmt>
+				<serName>IMD index</serName>
+			</serStmt>
+			<verStmt>
+				<version></version>
+			</verStmt>
+		</citation>
+		<stdyInfo>
+			<subject>
+				<keyword>E09000030</keyword>
+				<keyword>Tower Hamlets</keyword>
+				<keyword>boundary</keyword>
+				<keyword>2010</keyword>
+				<topcClas></topcClas>
+			</subject>
+			<abstract>This geodata pack provides the CDRC IMD for the year 2010 covering the Local Authority District: Tower Hamlets (E09000030)
+			</abstract>
+			<sumDscr>
+				<timePrd>2010</timePrd>
+				<collDate></collDate>
+				<nation>England</nation>
+				<geogCover>Tower Hamlets</geogCover>
+				<geogUnit>LSOA</geogUnit>
+				<anlyUnit>LSOA</anlyUnit>
+				<universe/>
+				<dataKind>Shapefile</dataKind>
+			</sumDscr>
+		</stdyInfo>
+		<method>
+			<dataColl>
+				<timeMeth/>
+				<dataCollector>DCLG, OCSI, PHE</dataCollector>
+				<sampProc/>
+				<deviat/>
+				<collMode/>
+				<sources>
+					<dataSrc> IMD index 2010</dataSrc>
+				</sources>
+				<weight/>
+			</dataColl>
+		</method>
+		<dataAccs>
+			<setAvail>
+				<accsPlac>Consumer Data Research Centre</accsPlac>
+				<accsPlac>UK Data Service</accsPlac>
+			</setAvail>
+			<useStmt>
+				<restrctn/>
+				<contact>data@cdrc.ac.uk</contact>
+			</useStmt>
+		</dataAccs>
+		<othrStdyMat>
+			<relStdy/>
+			<relPubl></relPubl>
+			<othRefs/>
+		</othrStdyMat>
+	</stdyDscr>
+</codeBook>
