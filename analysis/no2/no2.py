@@ -1,14 +1,12 @@
 #%%
 import pandas as pd
-import numpy as np
-import glob
 
 #%%
 years = list(range(2015,2022+1))
 appended_data = pd.DataFrame()
 
 for y in years:
-    df_years = pd.read_csv('data/Data_NO2/'+ str(y) + '.csv')
+    df_years = pd.read_csv('../../data/Data_NO2/'+ str(y) + '.csv')
     # df_years = df_years.drop(columns=['Site no','Grid squaresX', 'Grid squaresY', 'Site Type'])
     df_years = df_years.drop(columns=['Site no', 'Site Type'])
     # df_years = (df_years.set_index(['Location'])
@@ -50,3 +48,4 @@ appended_data['Type'] = 'to be defined'
 appended_data.to_csv('test.csv')
 # %%
 # operational date for LTNs ~  1 July 2021: https://i.heartbg.uk/LFB-response-time-analysis
+# %%

@@ -18,18 +18,18 @@ import numpy as np
 
 # LSOA
 path_census = (
-    "data/Census_Residential_Data_Pack_2011/Local_Authority_Districts/E09000030/"
+    "../data/Census_Residential_Data_Pack_2011/Local_Authority_Districts/E09000030/"
 )
 lsoas_link = path_census + "shapefiles/E09000030.shp"
 lsoas = gpd.read_file(lsoas_link)
 
 # Indices of deprivation
-path_imd = "data/Index_of_Multiple_Deprivation_IMD/Local_Authority_Districts/E09000030/"
+path_imd = "../data/Index_of_Multiple_Deprivation_IMD/Local_Authority_Districts/E09000030/"
 imd = gpd.read_file(path_imd + "tables/E09000030_2019.csv")
 TH_lsoas = imd["lsoa11cd"]
 
 # motorised vehicules data
-dvla = gpd.read_file("data/DVLA_FOI_LSOA_201126/DVLA_FOI_LSOA_V3.csv")
+dvla = gpd.read_file("../data/DVLA_FOI_LSOA_201126/DVLA_FOI_LSOA_V3.csv")
 dvla["lsoa11cd"] = dvla["lsoac"]
 dvla_th = dvla[dvla["lsoa11cd"].isin(TH_lsoas)]
 dvla_2019 = dvla_th[dvla_th["year"] == "2019"]
@@ -211,8 +211,8 @@ def upper_ci(group):
     return mean + sem * t
 
 
-reducers = ["mean", "std", "sem", lower_ci, upper_ci, half_ci, "count"]
-group_by
-metric = metric if isinstance(metric, list) else [metric]
-metrics_to_agg = {key: reducers for key in metric}
-results = results.groupby(by=["group"] + group_by).agg(metrics_to_agg)
+# reducers = ["mean", "std", "sem", lower_ci, upper_ci, half_ci, "count"]
+# group_by
+# metric = metric if isinstance(metric, list) else [metric]
+# metrics_to_agg = {key: reducers for key in metric}
+# results = results.groupby(by=["group"] + group_by).agg(metrics_to_agg)

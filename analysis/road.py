@@ -17,17 +17,17 @@ import numpy as np
 #%%
 # LSOA
 # path_census = (
-#     "data/Census_Residential_Data_Pack_2011/Local_Authority_Districts/E09000030/"
+#     "../data/Census_Residential_Data_Pack_2011/Local_Authority_Districts/E09000030/"
 # )
 # lsoas_link = path_census + "shapefiles/E09000030.shp"
-lsoas_link = "data/Index_of_Multiple_Deprivation_IMD/Local_Authority_Districts/E09000030/shapefiles/E09000030.shp"
-# lsoas_link = "data/LLSOA_Dec_2021/LSOA_PopCentroids_EW_2021_V3.shp"
+lsoas_link = "../data/Index_of_Multiple_Deprivation_IMD/Local_Authority_Districts/E09000030/shapefiles/E09000030.shp"
+# lsoas_link = "../data/LLSOA_Dec_2021/LSOA_PopCentroids_EW_2021_V3.shp"
 lsoas = gpd.read_file(lsoas_link)
 lsoas = lsoas.to_crs(epsg=3857)  # for cx.add_basemap
 lsoas['LSOA21CD'] = lsoas['lsoa11cd']
 
 lsoas2 = gpd.read_file(
-    "data/LSOA_(2011)_to_LSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales.csv"
+    "../data/LSOA_(2011)_to_LSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales.csv"
 )
 # lsoa_col = 'F_LSOA11CD'
 lsoa_col = 'LSOA21CD'
@@ -37,7 +37,7 @@ lsoa_inner = lsoas2[lsoas2["LAD22NM"].isin(inner_boroughs)][lsoa_col].to_list()
 
 
 #%%
-road_link = "data/greater-london-latest-free/gis_osm_roads_free_1.shp"
+road_link = "../data/greater-london-latest-free/gis_osm_roads_free_1.shp"
 roads = gpd.read_file(road_link)
 lsoas = lsoas.to_crs(epsg=3857)
 # roads_of_interest = ['Hackney Road', 'Bethnal Green Road', 'Cambridge Heath Road']
@@ -49,7 +49,7 @@ roads = roads[roads['ref'].isin(roads_of_interest)]
 
 # road accidents / casualties
 # https://www.data.gov.uk/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/road-safety-data
-path_road = "data/road_collisions"
+path_road = "../data/road_collisions"
 dfs = []
 for year in [2018, 2019, 2020, 2021, 2022, '2023_mid_year_unvalidated']:
     data = pd.read_csv(os.path.join(path_road, f"{year}.csv"))
@@ -188,14 +188,14 @@ for i, (ax, collision_df, color, title, cmap) in enumerate(zip(axes, collision_d
             label="collisions",
             zorder=0,
         )
-    ax = roads.plot(ax=ax, label='roads', color='black')
-    # df[df['is_ltn']].plot(ax=ax, alpha=0.1, edgecolor="k", column='is_ltn')
+    # ax = roads.plot(ax=ax, label='roads', color='black')
+    df[df['is_ltn']].plot(ax=ax, alpha=0.1, edgecolor="k", column='is_ltn')
     # sm = plt.cm.ScalarMappable(
     #     cmap=cmap, norm=plt.Normalize(vmin=df[metric].min(), vmax=df[metric].max())
     # )  # empty array for the data range
     # cbar = fig.colorbar(sm, shrink=0.4, ax=ax)
-    # cx.add_basemap(ax)
-    # ax.legend()
+    cx.add_basemap(ax)
+    ax.legend()
 fig.tight_layout()
 
 
