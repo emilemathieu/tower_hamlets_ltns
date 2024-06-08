@@ -18,13 +18,12 @@ import numpy as np
 # %matplotlib inline
 
 
-#%%
+
 # Load LSOA data
 
 lsoas_link = "../data/LSOA/LSOA_2011_London_gen_MHW.shp"
 lsoas = gpd.read_file(lsoas_link)
 lsoas = lsoas.to_crs(epsg=3857)  # for cx.add_basemap
-#%%
 
 lsoas2 = gpd.read_file(
     "../data/LSOA_(2011)_to_LSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales.csv"
@@ -43,10 +42,9 @@ lsoa_inner = lsoa_inner_df[lsoa_col].to_list()
 lsoa_th_and_neigh_df = lsoas2[lsoas2["LAD22NM"].isin(['Tower Hamlets', 'Hackney', 'City of London'])]
 lsoa_th_and_neigh = lsoa_th_and_neigh_df[lsoa_col].to_list()
 
-lsoa_th_df.plot()
-lsoa_inner_df.plot()
+# lsoa_th_df.plot()
+# lsoa_inner_df.plot()
 
-# %%
 
 # Define LTNs in Tower Hamlets
 
@@ -81,8 +79,6 @@ filters_df = gpd.GeoDataFrame(geometry=geometry, crs=CRS.from_epsg(4326)).to_crs
 # roads_of_interest = ['Hackney Road', 'Bethnal Green Road', 'Cambridge Heath Road', 'Shoreditch High Street']
 # roads = roads[roads['name'].isin(roads_of_interest)]
 # roads.plot()
-
-#%%
 
 project = partial(
 pyproj.transform,
@@ -165,7 +161,7 @@ df['date'] = df['date'].apply(lambda x: x.date())
 df['pre_ltn'] = df['date'] < date(2020,6,1) # '01/06/2020'
 df['post_ltn'] = df['date'] >= date(2021,7,1) # '01/07/2021'
 
-#%%
+
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
 
 # full_df = df.__deepcopy__()
