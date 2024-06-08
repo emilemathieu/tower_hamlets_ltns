@@ -115,9 +115,9 @@ list_of_years = [2018, 2019, 2020, 2021, 2022]
 # list_of_years += '2023_mid_year_unvalidated'
 for year in list_of_years:
     collision_dfs.append(pd.read_csv(os.path.join(collision_path, f"{year}.csv")))
-    casualties_dfs.append(pd.read_csv(os.path.join(casualty_path, f"{year}.csv")))
+    # casualties_dfs.append(pd.read_csv(os.path.join(casualty_path, f"{year}.csv")))
 collision_df = pd.concat(collision_dfs)
-casualties_df = pd.concat(casualties_dfs)
+# casualties_df = pd.concat(casualties_dfs)
 # df = pd.merge(collision_df, casualties_df, on="accident_index")
 df = collision_df
 df["LSOA21CD"] = df["lsoa_of_accident_location"]
@@ -156,7 +156,8 @@ print(df['is_boundary_ltn'].sum())
 # 2. Post-LTN: July 2021 to May 2023
 from datetime import date
 
-df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
+df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+# df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
 df['date'] = df['date'].apply(lambda x: x.date())
 df['pre_ltn'] = df['date'] < date(2020,6,1) # '01/06/2020'
 df['post_ltn'] = df['date'] >= date(2021,7,1) # '01/07/2021'
@@ -201,7 +202,7 @@ for variable in ['is_inside_ltn', 'is_boundary_ltn']:
         print(f"ratio:      {ratio_ltn_vs_th:.2f}")
         print(f"p_value:    {p_value:.2f}")
 
-#%%
+
 collision_dfs = [
     df[df['pre_ltn'] & (df['is_th_and_neigh'])],
     df[df['post_ltn'] & (df['is_th_and_neigh'])]
