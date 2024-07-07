@@ -156,8 +156,8 @@ print(df['is_boundary_ltn'].sum())
 # 2. Post-LTN: July 2021 to May 2023
 from datetime import date
 
-df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
-# df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
+# df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
 df['date'] = df['date'].apply(lambda x: x.date())
 df['pre_ltn'] = df['date'] < date(2020,6,1) # '01/06/2020'
 df['post_ltn'] = df['date'] >= date(2021,7,1) # '01/07/2021'
