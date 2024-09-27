@@ -17,41 +17,46 @@ import numpy as np
 
 # %matplotlib inline
 
-
-
 # Load LSOA data
-
-lsoas_link = "../data/LSOA/LSOA_2011_London_gen_MHW.shp"
-lsoas = gpd.read_file(lsoas_link)
-lsoas = lsoas.to_crs(epsg=3857)  # for cx.add_basemap
+# lsoas_link = "../data/LSOA/LSOA_2011_London_gen_MHW.shp"
+# lsoas = gpd.read_file(lsoas_link)
+# lsoas = lsoas.to_crs(epsg=3857)  # for cx.add_basemap
 
 lsoas2 = gpd.read_file(
     "../data/LSOA_(2011)_to_LSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales.csv"
 )
-lsoas2['LSOA11CD'] = lsoas2['F_LSOA11CD']
-del lsoas2["geometry"]
-lsoas2 = gpd.GeoDataFrame(pd.merge(lsoas2, lsoas, on="LSOA11CD"))
 
-lsoa_col = 'F_LSOA11CD'
-# lsoa_col = 'LSOA21CD'
-lsoa_th_df = lsoas2[lsoas2["LAD22NM"] == "Tower Hamlets"]
-lsoa_th = lsoa_th_df[lsoa_col].to_list()
+# TODO: why this alternative key?
+# lsoas2['LSOA11CD'] = lsoas2['F_LSOA11CD']
+
+del lsoas2["geometry"]
+# lsoas2 = gpd.GeoDataFrame(pd.merge(lsoas2, lsoas, on="LSOA11CD"))
+# lsoa_col = 'F_LSOA11CD'
+
+lsoa_borough = "LAD22NM"
+lsoa_uid = "F_LSOA11CD"
+
+lsoa_th_df = lsoas2[lsoas2[lsoa_borough] == "Tower Hamlets"]
+lsoa_th = lsoa_th_df[lsoa_uid].to_list()
+
 inner_boroughs = ['Camden', 'Greenwich', 'Hackney', 'Hammersmith and Fulham', 'Islington', 'Kensington and Chelsea', 'Lambeth', 'Lewisham', 'Southwark', 'Tower Hamlets', 'Wandsworth', 'Westminster', 'City of London']
-lsoa_inner_df = lsoas2[lsoas2["LAD22NM"].isin(inner_boroughs)]
-lsoa_inner = lsoa_inner_df[lsoa_col].to_list()
-lsoa_th_and_neigh_df = lsoas2[lsoas2["LAD22NM"].isin(['Tower Hamlets', 'Hackney', 'City of London'])]
-lsoa_th_and_neigh = lsoa_th_and_neigh_df[lsoa_col].to_list()
+lsoa_inner_df = lsoas2[lsoas2[lsoa_borough].isin(inner_boroughs)]
+lsoa_inner = lsoa_inner_df[lsoa_uid].to_list()
+
+lsoa_th_and_neigh_df = lsoas2[lsoas2[lsoa_borough].isin(['Tower Hamlets', 'Hackney', 'City of London'])]
+lsoa_th_and_neigh = lsoa_th_and_neigh_df[lsoa_uid].to_list()
 
 # lsoa_th_df.plot()
 # lsoa_inner_df.plot()
 
-
 # Define LTNs in Tower Hamlets
 
 # list of LSOA with traffic filters
-ltns = ["E01004198", "E01004199", "E01004200", "E01004203", "E01004204", "E01004311", "E01004312", "E01004313", "E01004315", "E01004316"]
-ltns += ["E01004318", "E01004314"] # NOTE: north of Weavers
-lsoa_ltn_df = lsoa_th_df[lsoa_th_df['LSOA11CD'].isin(ltns)]
+
+# TODO: this is superceded by filters_df below?
+# ltns = ["E01004198", "E01004199", "E01004200", "E01004203", "E01004204", "E01004311", "E01004312", "E01004313", "E01004315", "E01004316"]
+# ltns += ["E01004318", "E01004314"] # NOTE: north of Weavers
+# lsoa_ltn_df = lsoa_th_df[lsoa_th_df[lsoa_uid].isin(ltns)]
 
 # latitude and longitude of traffic filters from https://talk.towerhamlets.gov.uk/4093/widgets/12671/documents/29230 and https://talk.towerhamlets.gov.uk/4093/widgets/12671/documents/29229
 traffic_filters = {
@@ -80,11 +85,13 @@ filters_df = gpd.GeoDataFrame(geometry=geometry, crs=CRS.from_epsg(4326)).to_crs
 # roads = roads[roads['name'].isin(roads_of_interest)]
 # roads.plot()
 
-project = partial(
-pyproj.transform,
-pyproj.Proj('EPSG:4326'),
-pyproj.Proj('EPSG:3857'))
+# not used
+# project = partial(
+# pyproj.transform,
+# pyproj.Proj('EPSG:4326'),
+# pyproj.Proj('EPSG:3857'))
 
+# by human hand
 ltn_borders_list = [
     (51.532572, -0.057133), (51.531395, -0.064693), (51.530846, -0.072525), (51.529827, -0.074711), (51.529258, -0.074914), (51.527835, -0.076487),
     (51.526941, -0.077971), (51.526306, -0.078077), (51.524729, -0.077161),
@@ -92,6 +99,7 @@ ltn_borders_list = [
     (51.527547, -0.055430), (51.530254, -0.056104)]
 ltn_borders_list = [(lon, lat) for lat, lon in ltn_borders_list] #NOTE: swap lat and lon
 ltn_borders_list = [Point(lat, lon) for lat, lon in ltn_borders_list]
+
 poly = Polygon(ltn_borders_list)
 ltn_df = gpd.GeoDataFrame(geometry=[poly], crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
 ltn_borders = gpd.GeoDataFrame(geometry=np.array(ltn_borders_list), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
@@ -108,11 +116,13 @@ poly2 = Polygon(ltn_borders['geometry'].to_list())
 # https://www.data.gov.uk/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/road-safety-data
 
 collision_path = "../data/road_collisions"
-casualty_path = "../data/road_casualties"
 collision_dfs = []
-casualties_dfs = []
+# casualty_path = "../data/road_casualties"
+# casualties_dfs = []
+
 list_of_years = [2018, 2019, 2020, 2021, 2022]
 # list_of_years += '2023_mid_year_unvalidated'
+
 for year in list_of_years:
     collision_dfs.append(pd.read_csv(os.path.join(collision_path, f"{year}.csv")))
     # casualties_dfs.append(pd.read_csv(os.path.join(casualty_path, f"{year}.csv")))
@@ -125,7 +135,6 @@ df["LSOA21CD"] = df["lsoa_of_accident_location"]
 df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
 df['og_geometry'] = gpd.points_from_xy(df.longitude, df.latitude)
 df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
-
 
 #%%
 
@@ -238,6 +247,7 @@ for i, (ax, sub_df, title, cmap) in enumerate(zip(axes, collision_dfs, titles, c
     cx.add_basemap(ax)
     ax.legend()
 fig.tight_layout()
+fig.savefig('./output.png')
 
 # %%
 
