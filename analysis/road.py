@@ -8,6 +8,7 @@ import pandas as pd
 
 os.environ["USE_PYGEOS"] = "0"
 import geopandas as gpd
+# import geopandas.testing
 import contextily as cx
 from shapely.geometry import Point, LineString, Polygon
 from shapely.ops import transform
@@ -100,14 +101,21 @@ ltn_borders_list = [
 ltn_borders_list = [(lon, lat) for lat, lon in ltn_borders_list] #NOTE: swap lat and lon
 ltn_borders_list = [Point(lat, lon) for lat, lon in ltn_borders_list]
 
-poly = Polygon(ltn_borders_list)
-ltn_df = gpd.GeoDataFrame(geometry=[poly], crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
-ltn_borders = gpd.GeoDataFrame(geometry=np.array(ltn_borders_list), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+# polyLatLon is the polygon of the ltn using lat and lon coordinates
+polyLatLon = Polygon(ltn_borders_list)
+
+# epsg 3857 is Mercator, ltn_borders_df is the vertices of the solid polygon of the ltn
+ltn_borders_df = gpd.GeoDataFrame(geometry=ltn_borders_list, crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+
+# polyMercator is made from ltn_borders_df, which is in Mercator coords
+polyMercator = Polygon(ltn_borders_df['geometry'].to_list())
+
+# epsg 3857 is Mercator, ltn_df is the solid polygon of the ltn
+ltn_df = gpd.GeoDataFrame(geometry=[polyLatLon], crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
 
 # ltn_df.plot()
-# ltn_borders.plot()
+# ltn_borders_df.plot()
 
-poly2 = Polygon(ltn_borders['geometry'].to_list())
 # poly_in_3857_coords = transform(project, poly)
 
 
@@ -121,6 +129,7 @@ collision_dfs = []
 # casualties_dfs = []
 
 list_of_years = [2018, 2019, 2020, 2021, 2022]
+# TODO: new verified data?
 # list_of_years += '2023_mid_year_unvalidated'
 
 for year in list_of_years:
@@ -129,11 +138,18 @@ for year in list_of_years:
 collision_df = pd.concat(collision_dfs)
 # casualties_df = pd.concat(casualties_dfs)
 # df = pd.merge(collision_df, casualties_df, on="accident_index")
-df = collision_df
-df["LSOA21CD"] = df["lsoa_of_accident_location"]
 
-df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
-df['og_geometry'] = gpd.points_from_xy(df.longitude, df.latitude)
+# main data frame from now on
+df = collision_df
+# df["lsoa_uid"] = df["lsoa_of_accident_location"]
+
+gpd_geometry_from_xy = gpd.points_from_xy(df.longitude, df.latitude)
+# in the below we give 'geometry' of df the points in Mercator because of the crs conversion,
+# and then readd 'LatLon_geometry'
+df = gpd.GeoDataFrame(df, geometry=gpd_geometry_from_xy, crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
+df['LatLon_geometry'] = gpd_geometry_from_xy
+
+# accidents in or neighbouring th?
 df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
 
 #%%
@@ -145,20 +161,24 @@ df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
 # 3. Elsewhere in Tower Hamlets.
 # 4. Elsewhere in Inner London.
 # df['is_ltn'] = df["LSOA21CD"].isin(ltns)
+
 # NOTE: LTN = low traffic neighbourhood. Injuries are limited to those that are neither on an A or B road, nor at the intersection with an A or B road.
 dist_int_ltn = 50
 dist_ext_ltn = 50
 
-df['is_ltn'] = df['og_geometry'].apply(lambda x: poly.contains(x))
-df['dist_to_boundary_roads'] = df.apply(lambda x: poly2.exterior.distance(x['geometry']), axis=1)
+df['is_ltn'] = df['LatLon_geometry'].apply(lambda x: polyLatLon.contains(x))
+df['dist_to_boundary_roads'] = df.apply(lambda x: polyMercator.exterior.distance(x['geometry']), axis=1)
 
-
+# 'is_inside_ltn': in the LTN and also more than dist_int_ltn metres inside the LTN
+# 'is_th': in tower hamlets and not in the LTN, NOTE: ~ is negation of a series in pandas
+# 'is_inner': in inner boroughs but not tower hamlets
+# 'is_boundary_ltn': TODO: we double count here? all the of the second clause (after the or) is either in is_th or is_inner?
 df['is_inside_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] > dist_int_ltn)
 df['is_th'] = df["lsoa_of_accident_location"].isin(lsoa_th) & ~df['is_ltn']
 df['is_inner'] = df["lsoa_of_accident_location"].isin(lsoa_inner) & ~df['is_th']
 df['is_boundary_ltn'] = (df['is_ltn'] & (df['dist_to_boundary_roads'] <= dist_int_ltn)) | ((~df['is_ltn'] & df['is_th_and_neigh']) & (df['dist_to_boundary_roads'] <= dist_ext_ltn))
 # df['is_boundary_ltn'] = (~df['is_ltn'] & df['is_th_and_neigh']) & (df['dist_to_boundary_roads'] <= 50)
-print(df['is_boundary_ltn'].sum())
+# print(df['is_boundary_ltn'].sum())
 
 # Define dates
 # 1. Pre-LTN: January 2018 to June 2020
@@ -170,7 +190,6 @@ df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
 df['date'] = df['date'].apply(lambda x: x.date())
 df['pre_ltn'] = df['date'] < date(2020,6,1) # '01/06/2020'
 df['post_ltn'] = df['date'] >= date(2021,7,1) # '01/07/2021'
-
 
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
 
@@ -184,7 +203,7 @@ dict_str = {
     'is_inside_ltn': 'inside of LTN',
     'is_boundary_ltn': 'boundary of LTN',
     'is_th': 'Rest of Tower Hamlets',
-    'is_inner': 'Iner boroughs',
+    'is_inner': 'Inner boroughs',
 }
 
 for variable in ['is_inside_ltn', 'is_boundary_ltn']:
@@ -204,13 +223,40 @@ for variable in ['is_inside_ltn', 'is_boundary_ltn']:
         # table = np.array([[in_ltn_post_ltn, in_ltn_pre_ltn], [in_th_post_ltn, in_th_pre_ltn]])
         table = np.array([[in_ltn_pre_ltn, in_th_pre_ltn], [in_ltn_post_ltn, in_th_post_ltn]])
         p_value = fisher_exact(table)[1]
-        # p_value = boschloo_exact(table).pvalue
+        # p_value_b = boschloo_exact(table).pvalue
 
         print(f"Variable:   {in_ltn_pre_ltn} vs {in_ltn_post_ltn}")
         print(f"Control:    {in_th_pre_ltn} vs {in_th_post_ltn}")
         print(f"ratio:      {ratio_ltn_vs_th:.2f}")
         print(f"p_value:    {p_value:.2f}")
+        # print(f"p_value_b:  {p_value_b:.2f}")
 
+"""
+checking p-value via Fisher's exact against Tab. 1 of https://findingspress.org/article/18330-the-impact-of-introducing-low-traffic-neighbourhoods-on-road-traffic-injuries
+Pedestrian casualty and LTN versus Waltham Forest should be 0.06
+a = 16
+b = 129
+c = 8
+d = 153
+
+ratio = (c/d)/(a/b) # should approx equal 0.45
+print(ratio)
+tab = np.array([[a,b],[c,d]])
+pval = fisher_exact(tab)[1] # should approx equal 0.06
+print(pval)
+
+Casualty using any mode and LTN versus Waltham Forest
+a = 51
+b = 469
+c = 18
+d = 572
+
+ratio = (c/d)/(a/b) # should approx equal 0.31
+print(ratio)
+tab = np.array([[a,b],[c,d]])
+pval = fisher_exact(tab)[1] # should be <= 0.01
+print(pval)
+"""
 
 collision_dfs = [
     df[df['pre_ltn'] & (df['is_th_and_neigh'])],
