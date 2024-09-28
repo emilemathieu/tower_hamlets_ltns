@@ -188,8 +188,10 @@ from datetime import date
 # df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
 df['date'] = df['date'].apply(lambda x: x.date())
-df['pre_ltn'] = df['date'] < date(2020,6,1) # '01/06/2020'
-df['post_ltn'] = df['date'] >= date(2021,7,1) # '01/07/2021'
+pre_ltn_date = date(2020,6,1)
+post_ltn_date = date(2021,7,1)
+df['pre_ltn'] = df['date'] < pre_ltn_date # '01/06/2020'
+df['post_ltn'] = df['date'] >= post_ltn_date # '01/07/2021'
 
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
 
@@ -295,6 +297,30 @@ for i, (ax, sub_df, title, cmap) in enumerate(zip(axes, collision_dfs, titles, c
 fig.tight_layout()
 fig.savefig('./output.png')
 
+
+# %%
+
+time_series = df.resample('6M', on='pd_date').sum().reset_index()
+dates = time_series['pd_date']
+
+fig, ax = plt.subplots(1, 1, figsize=(8, 4))
+
+kwargs = {'lw': 3}
+
+for series_name in ['is_inside_ltn', 'is_boundary_ltn', 'is_th']:
+    ys = time_series[series_name]
+    # zs = ys
+    zs = (ys - ys[0]) / ys[0]
+    ax.plot(dates, zs, label=dict_str[series_name], **kwargs)
+
+fig.legend()
+
+ax.vlines(pre_ltn_date, ymin=0, ymax=10, color='black', linestyle='--', label='pre LTN')
+ax.vlines(post_ltn_date, ymin=0, ymax=10, color='black', linestyle='--', label='pre LTN')
+
+ax.set_title('Relative variation of collision in Tower Hamlets')
+
+
 # %%
 
 
@@ -311,3 +337,5 @@ fig.savefig('./output.png')
 
 # df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_ltn']), axis=1)
 # df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_th_and_neigh']), axis=1)
+# %%
+
