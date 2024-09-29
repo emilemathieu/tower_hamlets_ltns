@@ -128,9 +128,7 @@ collision_dfs = []
 # casualty_path = "../data/road_casualties"
 # casualties_dfs = []
 
-list_of_years = [2018, 2019, 2020, 2021, 2022]
-# TODO: new verified data?
-# list_of_years += '2023_mid_year_unvalidated'
+list_of_years = [2018, 2019, 2020, 2021, 2022, 2023]
 
 for year in list_of_years:
     collision_dfs.append(pd.read_csv(os.path.join(collision_path, f"{year}.csv")))
@@ -151,6 +149,7 @@ df['LatLon_geometry'] = gpd_geometry_from_xy
 
 # accidents in or neighbouring th?
 df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
+df['og_date'] = df['date']
 
 #%%
 
@@ -163,7 +162,9 @@ df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
 # df['is_ltn'] = df["LSOA21CD"].isin(ltns)
 
 # NOTE: LTN = low traffic neighbourhood. Injuries are limited to those that are neither on an A or B road, nor at the intersection with an A or B road.
-dist_int_ltn = 50
+# dist_int_ltn = 50
+dist_int_ltn = 30
+# dist_int_ltn = 25 # weird serious collision id 2021010350973
 dist_ext_ltn = 50
 
 df['is_ltn'] = df['LatLon_geometry'].apply(lambda x: polyLatLon.contains(x))
@@ -174,9 +175,9 @@ df['dist_to_boundary_roads'] = df.apply(lambda x: polyMercator.exterior.distance
 # 'is_inner': in inner boroughs but not tower hamlets
 # 'is_boundary_ltn': TODO: we double count here? all the of the second clause (after the or) is either in is_th or is_inner?
 df['is_inside_ltn'] = df['is_ltn'] & (df['dist_to_boundary_roads'] > dist_int_ltn)
-df['is_th'] = df["lsoa_of_accident_location"].isin(lsoa_th) & ~df['is_ltn']
-df['is_inner'] = df["lsoa_of_accident_location"].isin(lsoa_inner) & ~df['is_th']
 df['is_boundary_ltn'] = (df['is_ltn'] & (df['dist_to_boundary_roads'] <= dist_int_ltn)) | ((~df['is_ltn'] & df['is_th_and_neigh']) & (df['dist_to_boundary_roads'] <= dist_ext_ltn))
+df['is_th'] = df["lsoa_of_accident_location"].isin(lsoa_th) & ~df['is_ltn'] & ~df['is_boundary_ltn']
+df['is_inner'] = df["lsoa_of_accident_location"].isin(lsoa_inner) & ~df['is_th'] & ~df['is_ltn'] & ~df['is_boundary_ltn']
 # df['is_boundary_ltn'] = (~df['is_ltn'] & df['is_th_and_neigh']) & (df['dist_to_boundary_roads'] <= 50)
 # print(df['is_boundary_ltn'].sum())
 
@@ -185,8 +186,7 @@ df['is_boundary_ltn'] = (df['is_ltn'] & (df['dist_to_boundary_roads'] <= dist_in
 # 2. Post-LTN: July 2021 to May 2023
 from datetime import date
 
-# df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
-df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
+df['date'] = pd.to_datetime(df['og_date'], format='%d/%m/%Y')
 df['date'] = df['date'].apply(lambda x: x.date())
 pre_ltn_date = date(2020,6,1)
 post_ltn_date = date(2021,7,1)
@@ -195,11 +195,12 @@ df['post_ltn'] = df['date'] >= post_ltn_date # '01/07/2021'
 
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
 
-# full_df = df.__deepcopy__()
-# df = full_df
-# df = full_df[full_df['accident_severity'].isin([1, 2])]
-
 from scipy.stats import fisher_exact, boschloo_exact
+
+severity_dict = {"Fatal": 1, "Serious": 2, "Slight": 3}
+severities = ["Fatal", "Serious"]
+# severities = ["Slight"]
+# severities = ["Fatal", "Serious", "Slight"]
 
 dict_str = {
     'is_inside_ltn': 'inside of LTN',
@@ -209,17 +210,19 @@ dict_str = {
 }
 
 for variable in ['is_inside_ltn', 'is_boundary_ltn']:
-    # for control in ['is_th', 'is_inner']:
-    for control in ['is_th']:
+    for control in ['is_th', 'is_inner']:
+    # for control in ['is_th']:
 
         print(f'### {dict_str[variable]} vs {dict_str[control]}')
         print(f'#      Pre LTN vs Post LTN')
 
-        in_ltn_pre_ltn = ((df[variable] == True) & (df['pre_ltn'] == True)).sum()
-        in_ltn_post_ltn = ((df[variable] == True) & (df['post_ltn'] == True)).sum()
+        severity = df['accident_severity'].isin([severity_dict[severity] for severity in severities])
 
-        in_th_pre_ltn = ((df[control] == True) & (df['pre_ltn'] == True)).sum()
-        in_th_post_ltn = ((df[control] == True) & (df['post_ltn'] == True)).sum()
+        in_ltn_pre_ltn = ((df[variable] == True) & (df['pre_ltn'] == True) & severity).sum()
+        in_ltn_post_ltn = ((df[variable] == True) & (df['post_ltn'] == True) & severity).sum()
+
+        in_th_pre_ltn = ((df[control] == True) & (df['pre_ltn'] == True) & severity).sum()
+        in_th_post_ltn = ((df[control] == True) & (df['post_ltn'] == True) & severity).sum()
 
         ratio_ltn_vs_th = (in_ltn_post_ltn / in_th_post_ltn) / (in_ltn_pre_ltn / in_th_pre_ltn)
         # table = np.array([[in_ltn_post_ltn, in_ltn_pre_ltn], [in_th_post_ltn, in_th_pre_ltn]])
@@ -227,15 +230,15 @@ for variable in ['is_inside_ltn', 'is_boundary_ltn']:
         p_value = fisher_exact(table)[1]
         # p_value_b = boschloo_exact(table).pvalue
 
-        print(f"Variable:   {in_ltn_pre_ltn} vs {in_ltn_post_ltn}")
-        print(f"Control:    {in_th_pre_ltn} vs {in_th_post_ltn}")
+        print(f"Variable:   {in_ltn_pre_ltn} -> {in_ltn_post_ltn}")
+        print(f"Control:    {in_th_pre_ltn} -> {in_th_post_ltn}")
         print(f"ratio:      {ratio_ltn_vs_th:.2f}")
         print(f"p_value:    {p_value:.2f}")
         # print(f"p_value_b:  {p_value_b:.2f}")
 
-"""
-checking p-value via Fisher's exact against Tab. 1 of https://findingspress.org/article/18330-the-impact-of-introducing-low-traffic-neighbourhoods-on-road-traffic-injuries
-Pedestrian casualty and LTN versus Waltham Forest should be 0.06
+# %%
+# checking p-value via Fisher's exact against Tab. 1 of https://findingspress.org/article/18330-the-impact-of-introducing-low-traffic-neighbourhoods-on-road-traffic-injuries
+# Pedestrian casualty and LTN versus Waltham Forest should be 0.06
 a = 16
 b = 129
 c = 8
@@ -247,7 +250,7 @@ tab = np.array([[a,b],[c,d]])
 pval = fisher_exact(tab)[1] # should approx equal 0.06
 print(pval)
 
-Casualty using any mode and LTN versus Waltham Forest
+# Casualty using any mode and LTN versus Waltham Forest
 a = 51
 b = 469
 c = 18
@@ -258,8 +261,8 @@ print(ratio)
 tab = np.array([[a,b],[c,d]])
 pval = fisher_exact(tab)[1] # should be <= 0.01
 print(pval)
-"""
 
+#%%
 collision_dfs = [
     df[df['pre_ltn'] & (df['is_th_and_neigh'])],
     df[df['post_ltn'] & (df['is_th_and_neigh'])]
@@ -282,18 +285,23 @@ for i, (ax, sub_df, title, cmap) in enumerate(zip(axes, collision_dfs, titles, c
     ax.set_xlim(minx - margin, maxx + margin)
     ax.set_ylim(miny - margin, maxy + margin)
 
-    ax.set_title(title, fontdict={"fontsize": "30", "fontweight": "3"})
+    # cond = sub_df['accident_severity'].isin([1, 2, 3]) # all
+    cond = sub_df['accident_severity'].isin([severity_dict[severity] for severity in severities]) # serious or fatal
+    # cond = sub_df['accident_severity'] == 3 # slight
+
+    ax.set_title(title + " -- severities=" + "/".join(severities), fontdict={"fontsize": "30", "fontweight": "3"})
     ax.axis("off")
     kwargs = {"marker": "*", "zorder": 3}
     filters_df.plot(ax=ax, markersize=200, color="blue", marker="x", label="modal filters")
-    sub_df[sub_df['is_th_and_neigh']].plot(ax=ax, color='black', **kwargs, markersize=200, label="all collisions")
-    sub_df[sub_df['is_inside_ltn']].plot(ax=ax, color='red', **kwargs, markersize=150, label="inner LTN collisions")
-    sub_df[sub_df['is_boundary_ltn']].plot(ax=ax, color='orange', **kwargs, label="boundary roads collisions")
+    sub_df[sub_df['is_th_and_neigh'] & cond].plot(ax=ax, color='black', **kwargs, markersize=200, label=" collisions outside LTN & boundary roads (i.e. control variable)")
+    sub_df[sub_df['is_inside_ltn'] & cond].plot(ax=ax, color='red', **kwargs, markersize=150, label="inner LTN collisions")
+    sub_df[sub_df['is_boundary_ltn'] & cond].plot(ax=ax, color='orange', **kwargs, label="boundary roads collisions")
     # roads.plot(ax=ax, label='roads', color='black')
     ltn_df.plot(ax=ax, alpha=0.5, edgecolor="k", label='LTN polygon')
-    ltn_borders.plot(ax=ax, alpha=1., edgecolor="k", markersize=300, label='LTN vertices')
+    ltn_borders_df.plot(ax=ax, alpha=1., edgecolor="k", markersize=300, label='LTN vertices')
     cx.add_basemap(ax)
     ax.legend()
+
 fig.tight_layout()
 fig.savefig('./output.png')
 
