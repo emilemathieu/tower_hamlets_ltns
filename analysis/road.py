@@ -128,7 +128,7 @@ collision_dfs = []
 # casualty_path = "../data/road_casualties"
 # casualties_dfs = []
 
-list_of_years = [2018, 2019, 2020, 2021, 2022, 2023]
+list_of_years = range(2017, 2023+1)
 
 for year in list_of_years:
     collision_dfs.append(pd.read_csv(os.path.join(collision_path, f"{year}.csv")))
@@ -193,6 +193,7 @@ post_ltn_date = date(2021,7,1)
 df['pre_ltn'] = df['date'] < pre_ltn_date # '01/06/2020'
 df['post_ltn'] = df['date'] >= post_ltn_date # '01/07/2021'
 
+#%%
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
 
 from scipy.stats import fisher_exact, boschloo_exact
