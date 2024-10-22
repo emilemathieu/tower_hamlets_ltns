@@ -1,10 +1,13 @@
 #%%
 import os
-from functools import partial
+from datetime import date
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 import pandas as pd
+from scipy.stats import fisher_exact, boschloo_exact
+import numpy as np
 
 os.environ["USE_PYGEOS"] = "0"
 import geopandas as gpd
@@ -14,7 +17,6 @@ from shapely.geometry import Point, LineString, Polygon
 from shapely.ops import transform
 from pyproj import CRS, pyproj
 
-import numpy as np
 
 # %matplotlib inline
 
@@ -24,7 +26,7 @@ import numpy as np
 # lsoas = lsoas.to_crs(epsg=3857)  # for cx.add_basemap
 
 lsoas2 = gpd.read_file(
-    "../data/LSOA_(2011)_to_LSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales.csv"
+    "data/LSOA_(2011)_to_LSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales.csv"
 )
 
 # TODO: why this alternative key?
@@ -123,23 +125,35 @@ ltn_df = gpd.GeoDataFrame(geometry=[polyLatLon], crs=CRS.from_epsg(4326)).to_crs
 # Load # road collisions
 # https://www.data.gov.uk/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/road-safety-data
 
-collision_path = "../data/road_collisions"
+collision_path = "data/road_collisions"
 collision_dfs = []
-# casualty_path = "../data/road_casualties"
-# casualties_dfs = []
+casualty_path = "data/road_casualties"
+casualties_dfs = []
 
 list_of_years = range(2017, 2023+1)
+# list_of_years = range(2018, 2023+1)
+# list_of_years = range(2023, 2023+1)
 
 for year in list_of_years:
     collision_dfs.append(pd.read_csv(os.path.join(collision_path, f"{year}.csv")))
-    # casualties_dfs.append(pd.read_csv(os.path.join(casualty_path, f"{year}.csv")))
+    casualties_dfs.append(pd.read_csv(os.path.join(casualty_path, f"{year}.csv")))
 collision_df = pd.concat(collision_dfs)
-# casualties_df = pd.concat(casualties_dfs)
-# df = pd.merge(collision_df, casualties_df, on="accident_index")
+casualties_df = pd.concat(casualties_dfs)
 
+# cast to same type so that we can pd.merge later on these columns
+collision_df['accident_index'] = collision_df['accident_index'].astype(str)
+casualties_df['accident_index'] = casualties_df['accident_index'].astype(str)
+#%%
 # main data frame from now on
 df = collision_df
+
+lsoa_lookup = pd.read_csv("data/LSOA/LSOA11_WD20_LAD20_EW_LU_v2.csv")
+df = pd.merge(df, lsoa_lookup, left_on='lsoa_of_accident_location', right_on='LSOA11CD')
 # df["lsoa_uid"] = df["lsoa_of_accident_location"]
+
+# accidents in or neighbouring th?
+df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
+df = df[df['is_th_and_neigh']]
 
 gpd_geometry_from_xy = gpd.points_from_xy(df.longitude, df.latitude)
 # in the below we give 'geometry' of df the points in Mercator because of the crs conversion,
@@ -147,8 +161,6 @@ gpd_geometry_from_xy = gpd.points_from_xy(df.longitude, df.latitude)
 df = gpd.GeoDataFrame(df, geometry=gpd_geometry_from_xy, crs=CRS.from_epsg(4326)).to_crs(epsg=3857)
 df['LatLon_geometry'] = gpd_geometry_from_xy
 
-# accidents in or neighbouring th?
-df['is_th_and_neigh'] = df["lsoa_of_accident_location"].isin(lsoa_th_and_neigh)
 df['og_date'] = df['date']
 
 #%%
@@ -184,7 +196,6 @@ df['is_inner'] = df["lsoa_of_accident_location"].isin(lsoa_inner) & ~df['is_th']
 # Define dates
 # 1. Pre-LTN: January 2018 to June 2020
 # 2. Post-LTN: July 2021 to May 2023
-from datetime import date
 
 df['date'] = pd.to_datetime(df['og_date'], format='%d/%m/%Y')
 df['date'] = df['date'].apply(lambda x: x.date())
@@ -193,15 +204,30 @@ post_ltn_date = date(2021,7,1)
 df['pre_ltn'] = df['date'] < pre_ltn_date # '01/06/2020'
 df['post_ltn'] = df['date'] >= post_ltn_date # '01/07/2021'
 
+nb_days_after_ltn = (pre_ltn_date - df['date'].min()).days
+print(f"Nb of days before ltn: {nb_days_after_ltn}")
+nb_days_after_ltn = (df['date'].max() - post_ltn_date).days
+print(f"Nb of days after ltn: {nb_days_after_ltn}")
+
+#%%
+# Join casualties dataset with collisions dataset
+casualties_df.drop(columns=['accident_year', 'accident_reference'])
+casualties_df = casualties_df[casualties_df['accident_index'].isin(df['accident_index'])]
+df = pd.merge(casualties_df, df, on='accident_index', how='left')
+
 #%%
 # Ratios calculated as ‘% injuries inside LTNs in post period’/‘% injuries inside LTNs in pre period’
-
-from scipy.stats import fisher_exact, boschloo_exact
-
+from collections import defaultdict
 severity_dict = {"Fatal": 1, "Serious": 2, "Slight": 3}
+casualty_type_dict = defaultdict(lambda : list(range(-1, 100)), {'Pedestrian': 0, 'Cyclist': 1, 'Motorcycle 50cc and under rider or passenger': 2, 'Motorcycle 125cc and under rider or passenger': 3, 'Motorcycle over 125cc and up to 500cc rider or  passenger': 4, 'Motorcycle over 500cc rider or passenger': 5, 'Taxi/Private hire car occupant': 8, 'Car occupant': 9, 'Minibus (8 - 16 passenger seats) occupant': 10, 'Bus or coach occupant (17 or more pass seats)': 11, 'Horse rider': 16, 'Agricultural vehicle occupant': 17, 'Tram occupant': 18, 'Van / Goods vehicle (3.5 tonnes mgw or under) occupant': 19, 'Goods vehicle (over 3.5t. and under 7.5t.) occupant': 20, 'Goods vehicle (7.5 tonnes mgw and over) occupant': 21, 'Mobility scooter rider': 22, 'Electric motorcycle rider or passenger': 23, 'Other vehicle occupant': 90, 'Motorcycle - unknown cc rider or passenger': 97, 'Goods vehicle (unknown weight) occupant': 98, 'Unknown vehicle type (self rep only)': 99})
+
 severities = ["Fatal", "Serious"]
 # severities = ["Slight"]
 # severities = ["Fatal", "Serious", "Slight"]
+# casualty_types = ["Cyclist"]
+casualty_types = ["Pedestrian"]
+# casualty_types = list(casualty_type_dict.keys())[:-1] # all
+
 
 dict_str = {
     'is_inside_ltn': 'inside of LTN',
@@ -211,30 +237,34 @@ dict_str = {
 }
 
 for variable in ['is_inside_ltn', 'is_boundary_ltn']:
-    for control in ['is_th', 'is_inner']:
-    # for control in ['is_th']:
+    # for control in ['is_th', 'is_inner']:
+    for control in ['is_th']:
 
         print(f'### {dict_str[variable]} vs {dict_str[control]}')
         print(f'#      Pre LTN vs Post LTN')
 
-        severity = df['accident_severity'].isin([severity_dict[severity] for severity in severities])
+        severity = df['accident_severity'].isin([severity_dict[key] for key in severities])
+        casualty_type = df['casualty_type'].isin([casualty_type_dict[key] for key in casualty_types])
 
-        in_ltn_pre_ltn = ((df[variable] == True) & (df['pre_ltn'] == True) & severity).sum()
-        in_ltn_post_ltn = ((df[variable] == True) & (df['post_ltn'] == True) & severity).sum()
+        in_ltn_pre_ltn = df[((df[variable] == True) & (df['pre_ltn'] == True) & severity & casualty_type)]['number_of_casualties'].count()
+        in_ltn_post_ltn = df[((df[variable] == True) & (df['post_ltn'] == True) & severity & casualty_type)]['number_of_casualties'].count()
 
-        in_th_pre_ltn = ((df[control] == True) & (df['pre_ltn'] == True) & severity).sum()
-        in_th_post_ltn = ((df[control] == True) & (df['post_ltn'] == True) & severity).sum()
+        in_th_pre_ltn = df[((df[control] == True) & (df['pre_ltn'] == True) & severity & casualty_type)]['number_of_casualties'].count()
+        in_th_post_ltn = df[((df[control] == True) & (df['post_ltn'] == True) & severity & casualty_type)]['number_of_casualties'].count()
 
         ratio_ltn_vs_th = (in_ltn_post_ltn / in_th_post_ltn) / (in_ltn_pre_ltn / in_th_pre_ltn)
         # table = np.array([[in_ltn_post_ltn, in_ltn_pre_ltn], [in_th_post_ltn, in_th_pre_ltn]])
         table = np.array([[in_ltn_pre_ltn, in_th_pre_ltn], [in_ltn_post_ltn, in_th_post_ltn]])
-        p_value = fisher_exact(table)[1]
-        # p_value_b = boschloo_exact(table).pvalue
+        
+        # p_value = fisher_exact(table)[1]
+        # p_value = barnard_exact(table).pvalue
+        p_value = boschloo_exact(table).pvalue
+        # p_value = chi2_contingency(table)[1]
 
         print(f"Variable:   {in_ltn_pre_ltn} -> {in_ltn_post_ltn}")
         print(f"Control:    {in_th_pre_ltn} -> {in_th_post_ltn}")
-        print(f"ratio:      {ratio_ltn_vs_th:.2f}")
-        print(f"p_value:    {p_value:.2f}")
+        print(f"ratio:      {ratio_ltn_vs_th:.3f}")
+        print(f"p_value:    {p_value:.3f}")
         # print(f"p_value_b:  {p_value_b:.2f}")
 
 # %%
@@ -346,5 +376,61 @@ ax.set_title('Relative variation of collision in Tower Hamlets')
 
 # df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_ltn']), axis=1)
 # df['dist_to_boundary_roads'] = df.apply(lambda x: dist_to_boundary_roads(x['geometry'], x['is_th_and_neigh']), axis=1)
+
+#%%
+# columns = ['IncidentNumber', 'Month', 'Year', 'Period', "TimeOfCall", "DayOfCall", "utcTimeOfCall", "IncidentGroup", "Postcode_full", "Postcode_district", "Borough", "WardName"]
+
+columns = ['accident_index', 'Month', 'Year', 'Period', 'Location', 'latitude', 'longitude', "utcTime", "Borough", "WardName", "accident_severity", "number_of_casualties"]
+
+utc_time = pd.to_datetime(df['og_date'] + '-' + df['time'], format='%d/%m/%Y-%H:%M', utc=True)
+df["utcTime"] = utc_time.apply(lambda x: x.strftime('%Y-%m-%dT%H:%M:%S.000Z'))
+df["Month"] = utc_time.apply(lambda x: x.strftime("%Y-%m"))
+df["Year"] = df["accident_year"]
+
+def get_period (x):
+    if x.date() >= post_ltn_date:
+        return 'post LTN'
+    elif x.date() < pre_ltn_date:
+        return 'pre LTN'
+    elif (x.date() < post_ltn_date) and (x.date() >= pre_ltn_date):
+        return 'in between'
+    else:
+        raise ValueError(f"Invalid period: {x.date()}")
+        # return 'None'
+
+df["Period"] = utc_time.apply(get_period)
+
+def get_area (x):
+    if x['is_inside_ltn']:
+        return 'Inside LTN'
+    elif x['is_boundary_ltn']:
+        return 'Boundary LTN'
+    elif x['is_th']:
+        return 'Rest of Tower Hamlets'
+    elif x['is_inner']:
+        return 'Inner adjacent boroughs'
+    else:
+        raise ValueError("Invalid area")
+        # return 'None'
+
+df['Location'] = df.apply(get_area, axis=1)
+
+df['Borough'] = df['LAD20NM'].apply(lambda x: x.title())
+df['WardName'] = df['WD20NM'].apply(lambda x: x.upper())
+
+df[columns].to_csv("data/road_collisions/TH-LTN-collision.csv", index=False)
+
+#%%
+
 # %%
+
+29/01/2017?
+# 11th March 2017
+27/05/2017?
+# 24/07/2017
+01/11/2017?
+#  25th February 2018
+# 19/06/2018
+# 16/05/2019
+# 07/03/2020
 
