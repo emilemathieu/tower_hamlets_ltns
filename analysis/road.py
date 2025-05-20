@@ -224,8 +224,8 @@ casualty_type_dict = defaultdict(lambda : list(range(-1, 100)), {'Pedestrian': 0
 severities = ["Fatal", "Serious"]
 # severities = ["Slight"]
 # severities = ["Fatal", "Serious", "Slight"]
-# casualty_types = ["Cyclist"]
-casualty_types = ["Pedestrian"]
+casualty_types = ["Cyclist"]
+# casualty_types = ["Pedestrian"]
 # casualty_types = list(casualty_type_dict.keys())[:-1] # all
 
 
@@ -236,6 +236,8 @@ dict_str = {
     'is_inner': 'Inner boroughs',
 }
 
+print(f'Casualty types: {casualty_types}')
+print(f'Severities: {severities}')
 for variable in ['is_inside_ltn', 'is_boundary_ltn']:
     # for control in ['is_th', 'is_inner']:
     for control in ['is_th']:
@@ -256,9 +258,9 @@ for variable in ['is_inside_ltn', 'is_boundary_ltn']:
         # table = np.array([[in_ltn_post_ltn, in_ltn_pre_ltn], [in_th_post_ltn, in_th_pre_ltn]])
         table = np.array([[in_ltn_pre_ltn, in_th_pre_ltn], [in_ltn_post_ltn, in_th_post_ltn]])
         
-        # p_value = fisher_exact(table)[1]
+        p_value = fisher_exact(table)[1]
         # p_value = barnard_exact(table).pvalue
-        p_value = boschloo_exact(table).pvalue
+        # p_value = boschloo_exact(table).pvalue
         # p_value = chi2_contingency(table)[1]
 
         print(f"Variable:   {in_ltn_pre_ltn} -> {in_ltn_post_ltn}")
